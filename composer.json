@@ -1,0 +1,23 @@
+{
+    "name": "19950512/buscacreci",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Matheus Maydana",
+            "email": "mattmaydana@gmail.com"
+        }
+    ],
+    "require": {
+        "larapack/dd": "^1.1",
+        "19950512/php-di": "^1.0",
+        "php-di/php-di": "^7.0",
+        "spatie/crawler": "^8.2",
+        "symfony/dom-crawler": "^7.0",
+        "guzzlehttp/guzzle": "^7.0",
+        "symfony/css-selector": "^7.0"
+    }
+}
