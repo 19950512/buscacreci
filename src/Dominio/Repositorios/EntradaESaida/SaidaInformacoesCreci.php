@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Aplicacao\CasosDeUso\EntradaESaida;
+namespace App\Dominio\Repositorios\EntradaESaida;
 
-final readonly class SaidaCreci
+final readonly class SaidaInformacoesCreci
 {
 	public function __construct(
-		public string $creciID,
+		public string $creciCodigo,
 		public string $creciCompleto,
 		public string $creciEstado,
 		public string $nomeCompleto,
@@ -16,5 +16,5 @@ final readonly class SaidaCreci
 		public string $cidade,
 		public string $estado,
 		public string $numeroDocumento,
-	){}
+	) {}
 }

@@ -18,6 +18,8 @@
         "spatie/crawler": "^8.2",
         "symfony/dom-crawler": "^7.0",
         "guzzlehttp/guzzle": "^7.0",
-        "symfony/css-selector": "^7.0"
+        "symfony/css-selector": "^7.0",
+        "ext-pdo": "*",
+        "predis/predis": "^2.2"
     }
 }

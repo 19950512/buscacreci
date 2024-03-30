@@ -47,7 +47,7 @@ class CreciRJPlataformaImplementacao implements PlataformaCreci
 			situacao: $respostaHTML->cadastros[0]->situacao ? 'Ativo' : 'Inativo',
 			cidade: 'Rio de Janeiro',
 			estado: 'RJ',
-			cpf: $respostaHTML->cadastros[0]->cpf,
+			numeroDocumento: $respostaHTML->cadastros[0]->cpf,
 		);
 	}
 }

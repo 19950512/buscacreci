@@ -13,6 +13,6 @@ final readonly class SaidaConsultarCreciPlataforma
 		public string $situacao,
 		public string $cidade,
 		public string $estado,
-		public string $cpf = ''
+		public string $numeroDocumento = ''
 	){}
 }

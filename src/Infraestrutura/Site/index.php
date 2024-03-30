@@ -22,13 +22,12 @@ if(isset($_POST['creci'])){
 
 		$saidaCreci = $consultarCreci->consultarCreci($creciBuscado);
 
-		$resultado = "<p>Inscrição: $saidaCreci->inscricao</p>";
+		$resultado = "<p>Inscrição: $saidaCreci->creciCompleto</p>";
 		$resultado .= "<p>Nome Completo: $saidaCreci->nomeCompleto</p>";
-		$resultado .= "<p>Fantasia: $saidaCreci->fantasia</p>";
 		$resultado .= "<p>Situação: $saidaCreci->situacao</p>";
 		$resultado .= "<p>Cidade: $saidaCreci->cidade</p>";
 		$resultado .= "<p>Estado: $saidaCreci->estado</p>";
-		$resultado .= "<p>CPF: $saidaCreci->cpf</p>";
+		$resultado .= "<p>Documento: $saidaCreci->numeroDocumento</p>";
 	}catch (Exception $e){
 		$resultado = $e->getMessage();
 	}
