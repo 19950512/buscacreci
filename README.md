@@ -1,64 +1,32 @@
-# Busca Creci
-API para consultar CRECI, Corretores e imobiliárias de todos os CRECI's do Brasil.
+# Busca CRECI
+O Busca CRECI é uma API desenvolvida para facilitar a consulta de informações sobre corretores de imóveis registrados no CRECI (Conselho Regional de Corretores de Imóveis) em todo o Brasil. Este projeto nasceu da necessidade de centralizar e simplificar o acesso a dados sobre corretores, proporcionando uma solução rápida e eficiente para desenvolvedores e empresas do ramo imobiliário.
 
 ## Problema
-
-Um dos problemas do mercado imobiliário é que o CRECI (Conselho Regional de Corretores de Imóveis) não possui uma API para consulta de corretores.
-
-Isso dificulta a validação de corretores e a busca de informações sobre eles.
-
-Cada estado possui um site diferente para consulta de corretores, o que dificulta a busca de informações. Vezes o site está fora do ar, vezes o site não possui a informação que você precisa, etc.
+No mercado imobiliário, é comum encontrar dificuldades para validar a situação de um corretor de imóveis e obter informações sobre sua atividade. A falta de uma API oficial do CRECI para consulta de corretores torna esse processo ainda mais complicado. Além disso, cada estado brasileiro possui um site diferente para consulta de corretores, o que aumenta a dispersão e a inconsistência das informações disponíveis.
 
 ## Solução
+O Busca CRECI oferece uma solução abrangente, permitindo a consulta de corretores de forma simples e rápida, em um único lugar. Com uma API fácil de usar, desenvolvedores e empresas podem acessar informações atualizadas sobre corretores de imóveis em todo o Brasil.
 
-Com o Busca Creci, você pode consultar um CRECI de forma simples, rápida e em um único lugar.
+# Estados Disponíveis
+Atualmente, o Busca CRECI oferece suporte aos estados do Rio Grande do Sul (RS) e Rio de Janeiro (RJ). Estamos trabalhando para expandir nossa cobertura e incluir mais estados em breve.
+- [x] RS
+- [x] RJ
 
-**O Busca CRECI foi criada pensando em facilitar a vida de Desenvolvedores e Empresas do ramo imobiliário.**
+## Como Usar
 
-## Estados disponíveis
-- [x] RS - done
-- [x] RJ - done
-- [ ] SP - in progress
-- [ ] MG - in progress
-- [ ] PR - in progress
-- [ ] SC - in progress
-- [ ] ES - in progress
-- [ ] BA - in progress
-- [ ] CE - in progress
-- [ ] PE - in progress
-- [ ] RN - in progress
-- [ ] PB - in progress
-- [ ] SE - in progress
-- [ ] AL - in progress
-- [ ] PI - in progress
-- [ ] MA - in progress
-- [ ] PA - in progress
-- [ ] AP - in progress
-- [ ] TO - in progress
-- [ ] RR - in progress
-- [ ] AM - in progress
-- [ ] AC - in progress
-- [ ] DF - in progress
-- [ ] GO - in progress
-- [ ] MT - in progress
-- [ ] MS - in progress
-- [ ] RO - in progress
+#### BaseURL `api.buscacreci.com.br`
 
-## Como usar
-
-### BaseURL: api.buscacreci.com.br
-
-
-### REQUEST
+### Exemplo de Requisição
 ```bash
 curl --request GET \
   --url 'https://api.buscacreci.com.br/?creci=RJ1234J'
 ```
-### RESPONSE
+
+### Exemplo de Resposta
 ```json
 {
     "codigo": "ea844881-4582-4150-9776-7b5ebd95b30f",
-    "creciCompleto": "CRECI\/RJ 1234-J",
+    "creciCompleto": "CRECI/RJ 1234-J",
     "nomeCompleto": "Regal Imoveis Ltda",
     "situacao": "Ativo",
     "cidade": "Rio de Janeiro",
@@ -66,12 +34,18 @@ curl --request GET \
 }
 ```
 
-Busca CRECI é um projeto open-source, você pode contribuir com o projeto. Faça seu RP.
-
 ## Contribua
-- Faça um fork do projeto
-- Crie uma branch com a sua feature
-- Faça um commit das suas mudanças
-- Faça um push para a sua branch
-- Abra um Pull Request
-- Aguarde aprovação
+O Busca CRECI é um projeto open-source e você pode contribuir para o seu desenvolvimento. Siga os passos abaixo para colaborar:
+
+- Faça um fork do projeto.
+- Crie uma branch com a sua feature.
+- Faça um commit das suas mudanças.
+- Faça um push para a sua branch.
+- Abra um Pull Request.
+- Aguarde aprovação.
+
+Sua contribuição é fundamental para a melhoria contínua do Busca CRECI e para oferecer uma ferramenta cada vez mais útil para a comunidade do mercado imobiliário.
+
+Junte-se a nós e ajude a tornar a consulta de corretores de imóveis no Brasil mais acessível e eficiente! 🏠🔍
+
+
