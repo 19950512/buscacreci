@@ -30,9 +30,7 @@ class ConsultarCreciImplementacao implements ConsultarCreci
 	{
 
 		$estadosDoBrasil = Estado::getEstados();
-
 		$estadoEntity = new Estado('NN');
-		$tipoCreci = str_contains($creci, 'J') ? 'J' : 'F';
 		foreach($estadosDoBrasil as $estado => $nomeCompletoEstado){
 			$creciTemp = strtoupper($creci);
 			if(str_contains($creciTemp, $estado)){
@@ -61,6 +59,11 @@ class ConsultarCreciImplementacao implements ConsultarCreci
 			default => throw new Exception("Ainda não implementamos o estado informado! {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})"),
 		};
 
+		$creciTemporario = strtoupper($creci);
+		// Vamos remover o estado do creci
+		$creciTemporario = str_replace($estadoEntity->getUF(), '', $creciTemporario);
+		$tipoCreci = str_contains($creciTemporario, 'J') ? 'J' : 'F';
+
 		$numeroInscricao = preg_replace('/[^0-9]/', '', $creci);
 
 		$numeroCreciMontado = "CRECI/{$estadoEntity->getUF()} {$numeroInscricao}-{$tipoCreci}";
@@ -85,7 +88,10 @@ class ConsultarCreciImplementacao implements ConsultarCreci
 		}
 
 		try {
-			$resposta = $plataformaCreci->consultarCreci($numeroInscricao);
+			$resposta = $plataformaCreci->consultarCreci(
+				creci: $numeroInscricao,
+				tipoCreci: $tipoCreci
+			);
 		}catch (Exception $e){
 			throw new Exception("O número de inscrição {$numeroInscricao} não foi encontrado no CRECI {$creciImplementado->value}.");
 		}
@@ -94,6 +100,7 @@ class ConsultarCreciImplementacao implements ConsultarCreci
 		if(empty($resposta->fantasia)){
 			$tipoCreciFantasia = 'F';
 		}
+
 		$paramsBuildCreciEntidade = new SaidaInformacoesCreci(
 			creciCodigo: (new IdentificacaoUnica())->get(),
 			creciCompleto: "CRECI/{$estadoEntity->getUF()} {$numeroInscricao}-{$tipoCreciFantasia}",

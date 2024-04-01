@@ -22,7 +22,7 @@ class CreciRJPlataformaImplementacao implements PlataformaCreci
 		]);
 	}
 
-	public function consultarCreci(string $creci): SaidaConsultarCreciPlataforma
+	public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
 	{
 
 		// somente numeros
@@ -40,14 +40,29 @@ class CreciRJPlataformaImplementacao implements PlataformaCreci
 			throw new Exception('Ops, Creci não encontrado!');
 		}
 
+		foreach ($respostaHTML->cadastros as $cadastro) {
+			if($cadastro->creci == $creci){
+
+				if($cadastro->tipo == 1 and $tipoCreci == 'F'){
+					$respostaHTML = $cadastro;
+					break;
+				}
+
+				if($cadastro->tipo == 2 and $tipoCreci == 'J'){
+					$respostaHTML = $cadastro;
+					break;
+				}
+			}
+		}
+
 		return new SaidaConsultarCreciPlataforma(
-			inscricao: (string) $respostaHTML->cadastros[0]->creci,
-			nomeCompleto: $respostaHTML->cadastros[0]->nome,
-			fantasia: '',
-			situacao: $respostaHTML->cadastros[0]->situacao ? 'Ativo' : 'Inativo',
+			inscricao: (string) $respostaHTML->creci,
+			nomeCompleto: $respostaHTML->nome,
+			fantasia: $tipoCreci == 'J' ? $respostaHTML->nome : '',
+			situacao: $respostaHTML->situacao ? 'Ativo' : 'Inativo',
 			cidade: 'Rio de Janeiro',
 			estado: 'RJ',
-			numeroDocumento: $respostaHTML->cadastros[0]->cpf,
+			numeroDocumento: $respostaHTML->cpf,
 		);
 	}
 }

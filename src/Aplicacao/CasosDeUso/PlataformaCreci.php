@@ -8,5 +8,5 @@ use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
 
 interface PlataformaCreci
 {
-	public function consultarCreci(string $creci): SaidaConsultarCreciPlataforma;
+	public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma;
 }

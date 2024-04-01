@@ -23,18 +23,24 @@ class CreciRSPlataformaImplementacao implements PlataformaCreci
 		]);
 	}
 
-	public function consultarCreci(string $creci): SaidaConsultarCreciPlataforma
+	public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
 	{
 
 		// somente numeros
 		$numeroInscricao = preg_replace('/[^0-9]/', '', $creci);
+
+		$tipoPessoa = match($tipoCreci){
+			'F' => 1,
+			'J' => 2,
+			default => 0 // Todos
+		};
 
 		$response = $this->clientHttp->post('/siteNovo/pesquisaInscrito.php', [
 			'form_params' => [
 				'acao' => 'pesquisar',
 				'busca' => $numeroInscricao,
 				'cd_cidade' => 0,
-				'fg_tipo_pessoa' => 0
+				'fg_tipo_pessoa' => $tipoPessoa
 			]
 		]);
 
