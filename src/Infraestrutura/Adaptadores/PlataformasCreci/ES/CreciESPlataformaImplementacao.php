@@ -110,8 +110,7 @@ class CreciESPlataformaImplementacao implements PlataformaCreci
 			if($e->getCode() == 419){
 				throw new Exception('Ops, CSRF-Token expirado!');
 			}
-
-			dd($e);
+			throw new Exception($e->getMessage());
 		}
 	}
 

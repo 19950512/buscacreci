@@ -8,9 +8,10 @@ No mercado imobiliário, é comum encontrar dificuldades para validar a situaç�
 O Busca CRECI oferece uma solução abrangente, permitindo a consulta de corretores de forma simples e rápida, em um único lugar. Com uma API fácil de usar, desenvolvedores e empresas podem acessar informações atualizadas sobre corretores de imóveis em todo o Brasil.
 
 # Estados Disponíveis
-Atualmente, o Busca CRECI oferece suporte aos estados do Rio Grande do Sul (RS) e Rio de Janeiro (RJ). Estamos trabalhando para expandir nossa cobertura e incluir mais estados em breve.
+Atualmente, o Busca CRECI oferece suporte aos estados do Rio Grande do Sul (RS), Espirito Santo (ES) e Rio de Janeiro (RJ). Estamos trabalhando para expandir nossa cobertura e incluir mais estados em breve.
 - [x] RS
 - [x] RJ
+- [x] ES
 
 ## Como Usar
 
