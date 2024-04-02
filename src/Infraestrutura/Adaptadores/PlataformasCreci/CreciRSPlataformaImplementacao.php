@@ -52,10 +52,19 @@ class CreciRSPlataformaImplementacao implements PlataformaCreci
 
 			$cidadeEstado = explode('/', $node->filter('td')->eq(4)->text());
 
+			$inscricao = $node->filter('td')->eq(0)->text();
+
+			$nomeFantasia = '';
+			if(str_contains($inscricao,'J')){
+				$nomeFantasia = $node->filter('td')->eq(2)->text();
+			}
+
+			$inscricao = preg_replace('/[^0-9]/', '', $inscricao);
+
 			return [
-				'inscricao' => $node->filter('td')->eq(0)->text(),
+				'inscricao' => $inscricao,
 				'nomeCompleto' => $node->filter('td')->eq(1)->text(),
-				'fantasia' => $node->filter('td')->eq(2)->text(),
+				'fantasia' => $nomeFantasia,
 				'situacao' => $node->filter('td')->eq(3)->text(),
 				'cidade' => $cidadeEstado[0],
 				'estado' => $cidadeEstado[1],

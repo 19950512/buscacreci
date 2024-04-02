@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infraestrutura\APIs\Autenticacao\Public;
+//namespace App\Infraestrutura\APIs\BuscaCorretor\Public;
 
 use App\Infraestrutura\APIs\Router;
 
