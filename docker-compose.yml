@@ -41,6 +41,7 @@ services:
     volumes:
       - './:/application'
       - './docker/nginx/nginx_api.conf:/etc/nginx/conf.d/default.conf'
+      - './src:/application/src:rw'
     ports:
       - '8053:80'
     networks:

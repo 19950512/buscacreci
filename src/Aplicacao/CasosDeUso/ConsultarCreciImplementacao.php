@@ -8,7 +8,6 @@ use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaCreci;
 use App\Aplicacao\CasosDeUso\Enums\CreciImplementado;
 use App\Aplicacao\Compartilhado\Cache;
 use App\Dominio\Entidades\CreciEntidade;
-use App\Dominio\ObjetoValor\Creci;
 use App\Dominio\ObjetoValor\Endereco\Estado;
 use App\Dominio\ObjetoValor\IdentificacaoUnica;
 use App\Dominio\Repositorios\CreciRepositorio;
@@ -16,7 +15,7 @@ use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesCreci;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\CreciRJPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\CreciRSPlataformaImplementacao;
-use Cassandra\Uuid;
+use App\Infraestrutura\Adaptadores\PlataformasCreci\ES\CreciESPlataformaImplementacao;
 use Exception;
 
 class ConsultarCreciImplementacao implements ConsultarCreci
@@ -56,6 +55,7 @@ class ConsultarCreciImplementacao implements ConsultarCreci
 		$plataformaCreci = match ($creciImplementado) {
 			CreciImplementado::RS => new CreciRSPlataformaImplementacao(),
 			CreciImplementado::RJ => new CreciRJPlataformaImplementacao(),
+			CreciImplementado::ES => new CreciESPlataformaImplementacao(),
 			default => throw new Exception("Ainda não implementamos o estado informado! {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})"),
 		};
 
@@ -93,7 +93,7 @@ class ConsultarCreciImplementacao implements ConsultarCreci
 				tipoCreci: $tipoCreci
 			);
 		}catch (Exception $e){
-			throw new Exception("O número de inscrição {$numeroInscricao} não foi encontrado no CRECI {$creciImplementado->value}.");
+			throw new Exception("O número de inscrição {$numeroInscricao} não foi encontrado no CRECI {$creciImplementado->value}. - ".$e->getMessage());
 		}
 
 		$tipoCreciFantasia = 'J';
