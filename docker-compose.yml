@@ -7,7 +7,7 @@ services:
     working_dir: /application
     volumes:
       - './:/application'
-      - pg-config:/etc/postgresql
+      - './docker/postgres/pg-config:/etc/postgresql'
       - './docker/postgres/init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql'
     environment:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
