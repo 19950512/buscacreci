@@ -16,9 +16,9 @@
         "19950512/php-di": "^1.0",
         "php-di/php-di": "^7.0",
         "spatie/crawler": "^8.2",
-        "symfony/dom-crawler": "^7.0",
+        "symfony/dom-crawler": "^6.0|^7.0",
+        "symfony/css-selector": "^6.0|^7.0",
         "guzzlehttp/guzzle": "^7.0",
-        "symfony/css-selector": "^7.0",
         "ext-pdo": "*",
         "predis/predis": "^2.2"
     }
