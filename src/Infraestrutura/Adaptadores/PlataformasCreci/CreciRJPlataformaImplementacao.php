@@ -52,6 +52,7 @@ class CreciRJPlataformaImplementacao implements PlataformaCreci
 					$respostaHTML = $cadastro;
 					break;
 				}
+				throw new Exception('Ops, Creci não encontrado!');
 			}
 		}
 
