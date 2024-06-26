@@ -18,7 +18,7 @@ class CreciRJPlataformaImplementacao implements PlataformaCreci
 
 		$this->clientHttp = new \GuzzleHttp\Client([
 		    'base_uri' => 'https://www.crecirj.conselho.net.br',
-		    'timeout'  => 2.0,
+		    'timeout'  => 99999.0,
 		]);
 	}
 

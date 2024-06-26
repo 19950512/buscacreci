@@ -19,7 +19,7 @@ class CreciRSPlataformaImplementacao implements PlataformaCreci
 
 		$this->clientHttp = new \GuzzleHttp\Client([
 		    'base_uri' => 'https://www.creci-rs.gov.br',
-		    'timeout'  => 2.0,
+		    'timeout'  => 9999.0,
 			'origin' => 'www.creci-rs.gov.br'
 		]);
 	}
