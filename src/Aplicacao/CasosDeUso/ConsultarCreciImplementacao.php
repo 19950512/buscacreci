@@ -29,19 +29,7 @@ class ConsultarCreciImplementacao implements ConsultarCreci
 	{
 
 		$estadosDoBrasil = Estado::getEstados();
-		$estadoEntity = new Estado('NN');
-		foreach($estadosDoBrasil as $estado => $nomeCompletoEstado){
-			$creciTemp = strtoupper($creci);
-			if(str_contains($creciTemp, $estado)){
-
-				try {
-					$estadoEntity = new Estado($estado);
-					break;
-				}catch (Exception $e){
-					throw new Exception("Ainda não implementamos o estado informado. $estado");
-				}
-			}
-		}
+		$estadoEntity = $this->encontrarEstadoPorCreci($estadosDoBrasil, $creci);
 
 		if($estadoEntity->getUF() == 'NN'){
 			throw new Exception('Informe o estado no Creci. Exemplo: RS 12345');
@@ -138,5 +126,22 @@ class ConsultarCreciImplementacao implements ConsultarCreci
 			estado: $creciEntity->estado->get(),
 			numeroDocumento: $creciEntity->numeroDocumento->get(),
 		);
+	}
+
+	public function encontrarEstadoPorCreci(array $estadosDoBrasil, string $creci): Estado{
+		$estadoEntity = new Estado('NN');
+		foreach($estadosDoBrasil as $estado => $nomeCompletoEstado){
+			$creciTemp = strtoupper($creci);
+			if(str_contains($creciTemp, $estado)){
+
+				try {
+					$estadoEntity = new Estado($estado);
+					break;
+				}catch (Exception $e){
+					throw new Exception("Ainda não implementamos o estado informado. $estado");
+				}
+			}
+		}
+		return $estadoEntity;
 	}
 }
