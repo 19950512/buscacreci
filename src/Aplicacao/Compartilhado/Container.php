@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace App\Aplicacao\Compartilhado;
+use Exception;
 
 $pathVendor = __DIR__.'/../../../vendor/autoload.php';
 
@@ -22,7 +23,6 @@ use App\Infraestrutura\Adaptadores\PlataformasCreci\CreciRSPlataformaImplementac
 use App\Infraestrutura\Repositorios\CreciRepositorioImplementacao;
 use DI\Container;
 use DI\ContainerBuilder;
-use Exception;
 use PDO;
 use PDOException;
 
@@ -58,8 +58,7 @@ $container->addDefinitions([
                 die('Não foi encontrado o Driver do PDO.');
             }
 
-            header("HTTP/1.0 500 Connection");
-            echo file_get_contents(__DIR__.'/sem_conexao.html');
+            echo str_replace('{{mensagem_erro}}', $message, file_get_contents(__DIR__.'/sem_conexao.html'));
             exit;
         }
 	},

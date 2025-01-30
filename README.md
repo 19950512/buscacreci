@@ -49,4 +49,23 @@ Sua contribuição é fundamental para a melhoria contínua do Busca CRECI e par
 
 Junte-se a nós e ajude a tornar a consulta de corretores de imóveis no Brasil mais acessível e eficiente! 🏠🔍
 
+## Como Instalar
+
+Depois de clonar o projeto
+
+```bash
+composer install
+```
+
+```bash
+docker compose up -d
+```
+
+Quando todos os containers estiverem **Started**, estará disponível os links:
+
+- Site -> http://localhost:8052
+- API -> http://localhost:8053
+
+
+
 

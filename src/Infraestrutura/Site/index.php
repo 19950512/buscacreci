@@ -4,8 +4,15 @@ declare(strict_types=1);
 
 namespace App\Infraestrutura\Site;
 
+if(!is_file(__DIR__ . '/../../../vendor/autoload.php')){
+	die('Você precisa rodar o comando composer install');
+}
+
+if(!is_file(__DIR__.'/../../../.env')){
+	die('Você precisa criar o arquivo .env');
+}
+
 use App\Aplicacao\CasosDeUso\ConsultarCreci;
-use App\Aplicacao\CasosDeUso\PlataformaCreci;
 use Exception;
 
 $container = require __DIR__ . '/../../Aplicacao/Compartilhado/Container.php';
