@@ -15,6 +15,7 @@ use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesCreci;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\CreciRJPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\CreciRSPlataformaImplementacao;
+use App\Infraestrutura\Adaptadores\PlataformasCreci\PR\CreciPRPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\ES\CreciESPlataformaImplementacao;
 use Exception;
 
@@ -44,6 +45,7 @@ class ConsultarCreciImplementacao implements ConsultarCreci
 			CreciImplementado::RS => new CreciRSPlataformaImplementacao(),
 			CreciImplementado::RJ => new CreciRJPlataformaImplementacao(),
 			CreciImplementado::ES => new CreciESPlataformaImplementacao(),
+			CreciImplementado::PR => new CreciPRPlataformaImplementacao(),
 			default => throw new Exception("Ainda não implementamos o estado informado! {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})"),
 		};
 
