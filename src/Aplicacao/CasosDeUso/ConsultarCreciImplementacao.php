@@ -19,6 +19,7 @@ use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesCreci;
 use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\CreciRJPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\CreciRSPlataformaImplementacao;
+use App\Infraestrutura\Adaptadores\PlataformasCreci\PR\CreciPRPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\ES\CreciESPlataformaImplementacao;
 
 readonly final class ConsultarCreciImplementacao implements ConsultarCreci
@@ -33,24 +34,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 	{
 
 		$estadosDoBrasil = Estado::getEstados();
-		$estadoEntity = new Estado('NN');
-		foreach($estadosDoBrasil as $estado => $nomeCompletoEstado){
-			$creciTemp = strtoupper($creci);
-			if(str_contains($creciTemp, $estado)){
-
-				try {
-					$estadoEntity = new Estado($estado);
-					break;
-				}catch (Exception $e){
-					$mensagem = "Ainda não implementamos o estado informado. $estado";
-					$this->discord->enviarMensagem(
-						canalTexto: CanalTexto::CONSULTAS, 
-						mensagem: $mensagem
-					);
-					throw new Exception($mensagem);
-				}
-			}
-		}
+		$estadoEntity = $this->encontrarEstadoPorCreci($estadosDoBrasil, $creci);
 
 		if($estadoEntity->getUF() == 'NN'){
 			$mensagem = 'Informe o estado no Creci. Exemplo: RS 12345';
@@ -76,6 +60,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			CreciImplementado::RS => new CreciRSPlataformaImplementacao(),
 			CreciImplementado::RJ => new CreciRJPlataformaImplementacao(),
 			CreciImplementado::ES => new CreciESPlataformaImplementacao(),
+			CreciImplementado::PR => new CreciPRPlataformaImplementacao(),
 			default => throw new Exception("Ainda não implementamos o estado informado! {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})"),
 		};
 
@@ -176,5 +161,22 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			estado: $creciEntity->estado->get(),
 			numeroDocumento: $creciEntity->numeroDocumento->get(),
 		);
+	}
+
+	public function encontrarEstadoPorCreci(array $estadosDoBrasil, string $creci): Estado{
+		$estadoEntity = new Estado('NN');
+		foreach($estadosDoBrasil as $estado => $nomeCompletoEstado){
+			$creciTemp = strtoupper($creci);
+			if(str_contains($creciTemp, $estado)){
+
+				try {
+					$estadoEntity = new Estado($estado);
+					break;
+				}catch (Exception $e){
+					throw new Exception("Ainda não implementamos o estado informado. $estado");
+				}
+			}
+		}
+		return $estadoEntity;
 	}
 }
