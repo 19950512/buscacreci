@@ -35,6 +35,9 @@ curl --request GET \
 }
 ```
 
+## Discord
+https://discord.gg/B4pXbCd22b
+
 ## Contribua
 O Busca CRECI é um projeto open-source e você pode contribuir para o seu desenvolvimento. Siga os passos abaixo para colaborar:
 

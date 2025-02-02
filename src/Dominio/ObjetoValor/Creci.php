@@ -6,7 +6,7 @@ namespace App\Dominio\ObjetoValor;
 
 use Exception;
 
-final class Creci
+readonly final class Creci
 {
 	public function __construct(
 		private string $creci

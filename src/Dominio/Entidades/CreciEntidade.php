@@ -16,7 +16,6 @@ use App\Dominio\ObjetoValor\IdentificacaoUnica;
 use App\Dominio\ObjetoValor\NomeCompleto;
 use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesCreci;
 use DateTime;
-use Exception;
 
 class CreciEntidade
 {

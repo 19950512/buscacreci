@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Infraestrutura\Repositorios;
 
+use PDO;
+use Override;
 use App\Dominio\Repositorios\CreciRepositorio;
 use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesCreci;
-use PDO;
 
 readonly class CreciRepositorioImplementacao implements CreciRepositorio
 {
@@ -15,7 +16,7 @@ readonly class CreciRepositorioImplementacao implements CreciRepositorio
 		private PDO $conexao
 	){}
 
-	public function creciJaFoiConsultadoAntes(string $creci): bool
+	#[Override] public function creciJaFoiConsultadoAntes(string $creci): bool
 	{
 
 		$consulta = $this->conexao->prepare('SELECT nome_completo FROM creci WHERE creci_completo = :creci_completo');
@@ -27,7 +28,7 @@ readonly class CreciRepositorioImplementacao implements CreciRepositorio
 		return isset($creci['nome_completo']) and !empty($creci['nome_completo']);
 	}
 
-	public function buscarInformacoesCreci(string $creci): SaidaInformacoesCreci
+	#[Override] public function buscarInformacoesCreci(string $creci): SaidaInformacoesCreci
 	{
 		$consulta = $this->conexao->prepare('SELECT
                 creci_completo,
@@ -58,7 +59,7 @@ readonly class CreciRepositorioImplementacao implements CreciRepositorio
 		);
 	}
 
-	public function salvarCreciConsultado(EntradaSalvarCreciConsultado $parametros): void
+	#[Override] public function salvarCreciConsultado(EntradaSalvarCreciConsultado $parametros): void
 	{
 		$consulta = $this->conexao->prepare('INSERT INTO creci (
 			creci_id,

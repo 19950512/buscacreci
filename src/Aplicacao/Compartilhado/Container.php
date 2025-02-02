@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 namespace App\Aplicacao\Compartilhado;
+
+use PDO;
 use Exception;
 
 $pathVendor = __DIR__.'/../../../vendor/autoload.php';
@@ -13,18 +15,17 @@ if (!file_exists($pathVendor)) {
 
 require $pathVendor;
 
-use App\Aplicacao\CasosDeUso\ConsultarCreci;
-use App\Aplicacao\CasosDeUso\ConsultarCreciImplementacao;
-use App\Aplicacao\CasosDeUso\PlataformaCreci;
-use App\Dominio\Repositorios\CreciRepositorio;
-use App\Infraestrutura\Adaptadores\Cache\RedisCacheImplementacao;
-use App\Infraestrutura\Adaptadores\EnvrionmentImplementacao;
-use App\Infraestrutura\Adaptadores\PlataformasCreci\CreciRSPlataformaImplementacao;
-use App\Infraestrutura\Repositorios\CreciRepositorioImplementacao;
 use DI\Container;
-use DI\ContainerBuilder;
-use PDO;
 use PDOException;
+use DI\ContainerBuilder;
+use App\Aplicacao\CasosDeUso\ConsultarCreci;
+use App\Dominio\Repositorios\CreciRepositorio;
+use App\Aplicacao\Compartilhado\Discord\Discord;
+use App\Aplicacao\CasosDeUso\ConsultarCreciImplementacao;
+use App\Infraestrutura\Adaptadores\EnvrionmentImplementacao;
+use App\Infraestrutura\Adaptadores\Discord\DiscordImplementacao;
+use App\Infraestrutura\Adaptadores\Cache\RedisCacheImplementacao;
+use App\Infraestrutura\Repositorios\CreciRepositorioImplementacao;
 
 $container = new ContainerBuilder();
 
@@ -68,10 +69,17 @@ $container->addDefinitions([
 			conexao: $container->get(PDO::class)
 		);
 	},
+	Discord::class => function(Container $container)
+	{
+		return new DiscordImplementacao(
+			env: $container->get(Envrionment::class)
+		);
+	},
 	ConsultarCreci::class => function(Container $container)
 	{
 		return new ConsultarCreciImplementacao(
 			creciRepositorio: $container->get(CreciRepositorio::class),
+			discord: $container->get(Discord::class),
 			cache: $container->get(Cache::class)
 		);
 	}

@@ -9,11 +9,12 @@ use App\Aplicacao\Compartilhado\Envrionment;
 use App\Dominio\ObjetoValor\IPHost;
 use Predis\Autoloader;
 use Predis\Client;
+use Override;
 
-class RedisCacheImplementacao implements Cache
+final readonly class RedisCacheImplementacao implements Cache
 {
 
-    readonly private Client $redis;
+    private Client $redis;
 
     public function __construct(
         readonly private Envrionment $env
@@ -31,7 +32,7 @@ class RedisCacheImplementacao implements Cache
         $this->redis = new Client($configuracao);
     }
 
-    public function get(string $key): string | bool
+    #[Override] public function get(string $key): string | bool
     {
         if($this->redis->exists($key)){
             return $this->redis->get($key);
@@ -39,17 +40,17 @@ class RedisCacheImplementacao implements Cache
         return false;
     }
 
-    public function set(string $key, string $value): void
+    #[Override] public function set(string $key, string $value): void
     {
         $this->redis->set($key, $value);
     }
 
-    public function delete(string $key): void
+    #[Override] public function delete(string $key): void
     {
         $this->redis->del($key);
     }
 
-    public function expire(string $key, int $seconds): void
+    #[Override] public function expire(string $key, int $seconds): void
     {
         $this->redis->expire($key, $seconds);
     }
