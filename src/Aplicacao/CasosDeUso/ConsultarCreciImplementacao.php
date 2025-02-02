@@ -4,28 +4,32 @@ declare(strict_types=1);
 
 namespace App\Aplicacao\CasosDeUso;
 
-use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaCreci;
-use App\Aplicacao\CasosDeUso\Enums\CreciImplementado;
+use Override;
+use Exception;
 use App\Aplicacao\Compartilhado\Cache;
 use App\Dominio\Entidades\CreciEntidade;
 use App\Dominio\ObjetoValor\Endereco\Estado;
-use App\Dominio\ObjetoValor\IdentificacaoUnica;
 use App\Dominio\Repositorios\CreciRepositorio;
-use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
+use App\Dominio\ObjetoValor\IdentificacaoUnica;
+use App\Aplicacao\Compartilhado\Discord\Discord;
+use App\Aplicacao\CasosDeUso\Enums\CreciImplementado;
+use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaCreci;
+use App\Aplicacao\Compartilhado\Discord\Enums\CanalTexto;
 use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesCreci;
+use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\CreciRJPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\CreciRSPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\ES\CreciESPlataformaImplementacao;
-use Exception;
 
-class ConsultarCreciImplementacao implements ConsultarCreci
+readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 {
 	public function __construct(
-		readonly private CreciRepositorio $creciRepositorio,
-		readonly private Cache $cache
+		private CreciRepositorio $creciRepositorio,
+		private Discord $discord,
+		private Cache $cache
 	) {}
 
-	public function consultarCreci(string $creci): SaidaCreci
+	#[Override] public function consultarCreci(string $creci): SaidaCreci
 	{
 
 		$estadosDoBrasil = Estado::getEstados();
@@ -38,18 +42,34 @@ class ConsultarCreciImplementacao implements ConsultarCreci
 					$estadoEntity = new Estado($estado);
 					break;
 				}catch (Exception $e){
-					throw new Exception("Ainda não implementamos o estado informado. $estado");
+					$mensagem = "Ainda não implementamos o estado informado. $estado";
+					$this->discord->enviarMensagem(
+						canalTexto: CanalTexto::CONSULTAS, 
+						mensagem: $mensagem
+					);
+					throw new Exception($mensagem);
 				}
 			}
 		}
 
 		if($estadoEntity->getUF() == 'NN'){
-			throw new Exception('Informe o estado no Creci. Exemplo: RS 12345');
+			$mensagem = 'Informe o estado no Creci. Exemplo: RS 12345';
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTAS, 
+				mensagem: $mensagem
+			);
+			throw new Exception($mensagem);
 		}
 
 		$creciImplementado = CreciImplementado::tryFrom($estadoEntity->getUF());
 		if(!is_a($creciImplementado, CreciImplementado::class)){
-			throw new Exception("Ainda não implementamos o estado informado. {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})");
+			$mensagem = "Ainda não implementamos o estado informado. {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})";
+
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTAS, 
+				mensagem: $mensagem
+			);
+			throw new Exception($mensagem);
 		}
 
 		$plataformaCreci = match ($creciImplementado) {
@@ -84,6 +104,11 @@ class ConsultarCreciImplementacao implements ConsultarCreci
 				numeroDocumento: $creciData->numeroDocumento,
 			);
 
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTAS, 
+				mensagem: "Creci {$numeroCreciMontado} já foi consultado antes e está em cache.\nResposta:\n```json\n".json_encode($saidaCreci, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."```"
+			);
+
 			return $saidaCreci;
 		}
 
@@ -93,7 +118,15 @@ class ConsultarCreciImplementacao implements ConsultarCreci
 				tipoCreci: $tipoCreci
 			);
 		}catch (Exception $e){
-			throw new Exception("O número de inscrição {$numeroInscricao} não foi encontrado no CRECI {$creciImplementado->value}. - ".$e->getMessage());
+
+			$mensagem = "O número de inscrição {$numeroInscricao} não foi encontrado no CRECI {$creciImplementado->value}. - ".$e->getMessage();
+
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTAS, 
+				mensagem: $mensagem
+			);
+
+			throw new Exception($mensagem);
 		}
 
 		$tipoCreciFantasia = 'J';
@@ -126,6 +159,11 @@ class ConsultarCreciImplementacao implements ConsultarCreci
 		);
 
 		$this->creciRepositorio->salvarCreciConsultado($parametrosSalvarCreciConsultado);
+
+		$this->discord->enviarMensagem(
+			canalTexto: CanalTexto::CONSULTAS, 
+			mensagem: "Creci {$numeroCreciMontado} foi consultado e salvo no banco de dados."
+		);
 
 		return new SaidaCreci(
 			creciID: $creciEntity->codigo->get(),

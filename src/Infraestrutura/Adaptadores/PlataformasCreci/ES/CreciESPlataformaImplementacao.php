@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Infraestrutura\Adaptadores\PlataformasCreci\ES;
 
+use Exception;
+use Override;
 use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
 use App\Aplicacao\CasosDeUso\PlataformaCreci;
-use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\FileCookieJar;
 use Symfony\Component\DomCrawler\Crawler;
 
-class CreciESPlataformaImplementacao implements PlataformaCreci
+final readonly class CreciESPlataformaImplementacao implements PlataformaCreci
 {
 
 	private Client $clientHttp;
@@ -24,7 +25,7 @@ class CreciESPlataformaImplementacao implements PlataformaCreci
 		]);
 	}
 
-	public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
+	#[Override] public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
 	{
 
 		/*
@@ -40,7 +41,8 @@ class CreciESPlataformaImplementacao implements PlataformaCreci
 
 		try {
 
-			$cookieJar = new FileCookieJar(__DIR__.'/cookies.txt', true);
+			$cookiePath = sys_get_temp_dir() . '/cookies.txt'; // Usa o diretório temporário do sistema
+			$cookieJar = new FileCookieJar($cookiePath, true);
 			$response = $this->clientHttp->post('/resultado_de_pesquisa_por_creci', [
 				'cookies' => $cookieJar,
 				'headers' => [
@@ -117,7 +119,8 @@ class CreciESPlataformaImplementacao implements PlataformaCreci
 	private function getCSRFToken(): string
 	{
 
-		$cookieJar = new FileCookieJar(__DIR__.'/cookies.txt', true);
+		$cookiePath = sys_get_temp_dir() . '/cookies.txt'; // Usa o diretório temporário do sistema
+		$cookieJar = new FileCookieJar($cookiePath, true);
 
 		$response = $this->clientHttp->get('/resultado_de_pesquisa_por_creci', [
 			'cookies' => $cookieJar

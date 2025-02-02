@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Infraestrutura\Adaptadores\PlataformasCreci;
 
+use Exception;
+use Override;
 use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
 use App\Aplicacao\CasosDeUso\PlataformaCreci;
-use Exception;
 
-
-class CreciRJPlataformaImplementacao implements PlataformaCreci
+final readonly class CreciRJPlataformaImplementacao implements PlataformaCreci
 {
 
 	private \GuzzleHttp\Client $clientHttp;
@@ -22,7 +22,7 @@ class CreciRJPlataformaImplementacao implements PlataformaCreci
 		]);
 	}
 
-	public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
+	#[Override] public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
 	{
 
 		// somente numeros

@@ -1,4 +1,5 @@
-FROM php:8.3-fpm
+FROM php:8.4-fpm
+
 WORKDIR /application
 
 RUN apt-get update \
@@ -20,4 +21,11 @@ RUN apt-get update \
 
 RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql && docker-php-ext-install pgsql pdo_pgsql sockets
 
-#CMD ["php", "/application/src/Infra/Services/EmailService.php"]
+# Copie o arquivo php.ini para o container
+COPY ./php-ini-overrides.ini /usr/local/etc/php/php.ini
+
+# Exponha a porta 9000 para o PHP-FPM
+EXPOSE 9000
+
+# Defina o comando de inicialização para o PHP-FPM
+CMD ["php-fpm"]

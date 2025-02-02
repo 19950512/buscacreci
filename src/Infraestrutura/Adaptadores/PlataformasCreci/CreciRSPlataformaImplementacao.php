@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Infraestrutura\Adaptadores\PlataformasCreci;
 
+use Override;
+use Exception;
 use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
 use App\Aplicacao\CasosDeUso\PlataformaCreci;
-use Exception;
-use http\Client;
 use Symfony\Component\DomCrawler\Crawler;
 
 class CreciRSPlataformaImplementacao implements PlataformaCreci
@@ -24,7 +24,7 @@ class CreciRSPlataformaImplementacao implements PlataformaCreci
 		]);
 	}
 
-	public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
+	#[Override] public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
 	{
 
 		// somente numeros
