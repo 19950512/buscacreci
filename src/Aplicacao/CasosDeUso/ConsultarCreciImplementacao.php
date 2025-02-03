@@ -86,14 +86,9 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			tipoCreci: $tipoCreci
 		);
 		
-		$tipoCreciFantasia = 'J';
-		if(empty($resposta->fantasia)){
-			$tipoCreciFantasia = 'F';
-		}
-
 		$paramsBuildCreciEntidade = new SaidaInformacoesCreci(
 			creciCodigo: (new IdentificacaoUnica())->get(),
-			creciCompleto: "CRECI/{$estadoEntity->getUF()} {$numeroInscricao}-{$tipoCreciFantasia}",
+			creciCompleto: "CRECI/{$estadoEntity->getUF()} {$numeroInscricao}-{$tipoCreci}",
 			creciEstado: $resposta->estado,
 			nomeCompleto: $resposta->nomeCompleto,
 			atualizadoEm: date('Y-m-d H:i:s'),
