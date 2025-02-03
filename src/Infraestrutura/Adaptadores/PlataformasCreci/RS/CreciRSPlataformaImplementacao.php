@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infraestrutura\Adaptadores\PlataformasCreci;
+namespace App\Infraestrutura\Adaptadores\PlataformasCreci\RS;
 
 use Override;
 use Exception;

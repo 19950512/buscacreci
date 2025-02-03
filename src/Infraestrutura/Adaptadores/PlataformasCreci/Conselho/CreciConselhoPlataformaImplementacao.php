@@ -2,21 +2,23 @@
 
 declare(strict_types=1);
 
-namespace App\Infraestrutura\Adaptadores\PlataformasCreci\PR;
+namespace App\Infraestrutura\Adaptadores\PlataformasCreci\Conselho;
 
 use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
 use App\Aplicacao\CasosDeUso\PlataformaCreci;
-use Exception;
 use GuzzleHttp\Client;
+use Exception;
 
-class CreciPRPlataformaImplementacao implements PlataformaCreci
+class CreciConselhoPlataformaImplementacao implements PlataformaCreci
 {
     private Client $clientHttp;
 
-    public function __construct()
+    public function __construct(
+        private string $uf,
+    )
     {
         $this->clientHttp = new Client([
-            "base_uri" => "https://www.crecipr.conselho.net.br",
+            "base_uri" => "https://www.creci".mb_strtolower($this->uf).".conselho.net.br",
             "timeout" => 99
         ]);
     }
@@ -51,18 +53,21 @@ class CreciPRPlataformaImplementacao implements PlataformaCreci
             throw new Exception("CRECI Inexistente no estado informado");
         }
 
-        if($creciResponse['cadastros'][0]['situacao'] !== 1){
-            $situacao = "Invalido!";
-        }
-        $situacao = "Valido!";
+
+        $situacao = match($creciResponse['cadastros'][0]['regular']){
+            false => "Inativo",
+            true => "Ativo",
+            default => throw new Exception("Erro ao consultar a situacao do creci")
+        };
         
         $body = [
             "inscricao" => strval($creciResponse['cadastros'][0]['creci']),
             "nomeCompleto" => $creciResponse['cadastros'][0]['nome'],
-            "cidade" => "Parana",
-            "estado" => "PR",
+            "cidade" => '',
+            "estado" => $this->uf,
             "documento" => $creciResponse['cadastros'][0]['cpf'],
-            "fantasia" => ""
+            "fantasia" => "",
+            "telefone" => $creciResponse['cadastros'][0]['telefones'][0] ?? '',
         ];
 
         return new SaidaConsultarCreciPlataforma(
@@ -72,7 +77,8 @@ class CreciPRPlataformaImplementacao implements PlataformaCreci
             situacao: $situacao,
             cidade: $body['cidade'],
             estado: $body['estado'],
-            numeroDocumento: $body['documento']
+            numeroDocumento: $body['documento'],
+            telefone: $body['telefone'],
         );
     }
 }

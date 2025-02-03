@@ -37,7 +37,7 @@ class CreciEntidade
 		$creci = new Creci($parametros->creciCompleto);
 		$nomeCompleto = new NomeCompleto($parametros->nomeCompleto);
 		$situacao = new Ativo($parametros->situacao == 'Ativo');
-		$cidade = new Apelido($parametros->cidade);
+		$cidade = new Apelido(empty($parametros->cidade) ? $parametros->estado : $parametros->cidade);
 		$estado = new Estado($parametros->estado);
 		$atualizadoEm = new DateTime($parametros->atualizadoEm);
 

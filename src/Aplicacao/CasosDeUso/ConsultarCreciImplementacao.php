@@ -16,11 +16,13 @@ use App\Aplicacao\CasosDeUso\Enums\CreciImplementado;
 use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaCreci;
 use App\Aplicacao\Compartilhado\Discord\Enums\CanalTexto;
 use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesCreci;
+use App\Dominio\Entidades\ConselhoNacionalCRECI\ConselhoNacionalCRECI;
 use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
-use App\Infraestrutura\Adaptadores\PlataformasCreci\CreciRJPlataformaImplementacao;
-use App\Infraestrutura\Adaptadores\PlataformasCreci\CreciRSPlataformaImplementacao;
-use App\Infraestrutura\Adaptadores\PlataformasCreci\PR\CreciPRPlataformaImplementacao;
+use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\ES\CreciESPlataformaImplementacao;
+use App\Infraestrutura\Adaptadores\PlataformasCreci\PR\CreciPRPlataformaImplementacao;
+use App\Infraestrutura\Adaptadores\PlataformasCreci\RS\CreciRSPlataformaImplementacao;
+use App\Infraestrutura\Adaptadores\PlataformasCreci\Conselho\CreciConselhoPlataformaImplementacao;
 
 readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 {
@@ -44,25 +46,6 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			);
 			throw new Exception($mensagem);
 		}
-
-		$creciImplementado = CreciImplementado::tryFrom($estadoEntity->getUF());
-		if(!is_a($creciImplementado, CreciImplementado::class)){
-			$mensagem = "Ainda não implementamos o estado informado. {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})";
-
-			$this->discord->enviarMensagem(
-				canalTexto: CanalTexto::CONSULTAS, 
-				mensagem: $mensagem
-			);
-			throw new Exception($mensagem);
-		}
-
-		$plataformaCreci = match ($creciImplementado) {
-			CreciImplementado::RS => new CreciRSPlataformaImplementacao(),
-			CreciImplementado::RJ => new CreciRJPlataformaImplementacao(),
-			CreciImplementado::ES => new CreciESPlataformaImplementacao(),
-			CreciImplementado::PR => new CreciPRPlataformaImplementacao(),
-			default => throw new Exception("Ainda não implementamos o estado informado! {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})"),
-		};
 
 		$creciTemporario = strtoupper($creci);
 		// Vamos remover o estado do creci
@@ -97,23 +80,12 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			return $saidaCreci;
 		}
 
-		try {
-			$resposta = $plataformaCreci->consultarCreci(
-				creci: $numeroInscricao,
-				tipoCreci: $tipoCreci
-			);
-		}catch (Exception $e){
-
-			$mensagem = "O número de inscrição {$numeroInscricao} não foi encontrado no CRECI {$creciImplementado->value}. - ".$e->getMessage();
-
-			$this->discord->enviarMensagem(
-				canalTexto: CanalTexto::CONSULTAS, 
-				mensagem: $mensagem
-			);
-
-			throw new Exception($mensagem);
-		}
-
+		$resposta = $this->consultarCreciNaPlataforma(
+			estadoEntity: $estadoEntity,
+			numeroInscricao: $numeroInscricao,
+			tipoCreci: $tipoCreci
+		);
+		
 		$tipoCreciFantasia = 'J';
 		if(empty($resposta->fantasia)){
 			$tipoCreciFantasia = 'F';
@@ -145,12 +117,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 
 		$this->creciRepositorio->salvarCreciConsultado($parametrosSalvarCreciConsultado);
 
-		$this->discord->enviarMensagem(
-			canalTexto: CanalTexto::CONSULTAS, 
-			mensagem: "Creci {$numeroCreciMontado} foi consultado e salvo no banco de dados."
-		);
-
-		return new SaidaCreci(
+		$saidaCreci = new SaidaCreci(
 			creciID: $creciEntity->codigo->get(),
 			creciCompleto: $creciEntity->creci->get(),
 			creciEstado: $creciEntity->estado->get(),
@@ -161,9 +128,71 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			estado: $creciEntity->estado->get(),
 			numeroDocumento: $creciEntity->numeroDocumento->get(),
 		);
+
+		$this->discord->enviarMensagem(
+			canalTexto: CanalTexto::CONSULTAS, 
+			mensagem: "Creci {$numeroCreciMontado} foi consultado e salvo no banco de dados.\nResposta:\n```json\n".json_encode($saidaCreci, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."```"
+		);
+
+		return $saidaCreci;
 	}
 
-	public function encontrarEstadoPorCreci(array $estadosDoBrasil, string $creci): Estado{
+	private function consultarCreciNaPlataforma(Estado $estadoEntity, string $numeroInscricao, string $tipoCreci): SaidaConsultarCreciPlataforma
+	{
+
+		$conselhoNacionalCRECI = new ConselhoNacionalCRECI();
+
+		if($conselhoNacionalCRECI->estadoPossuiMembroAtivo($estadoEntity->getUF())){
+			$plataformaCreci = new CreciConselhoPlataformaImplementacao(
+				uf: $estadoEntity->getUF(),
+			);
+
+			return $plataformaCreci->consultarCreci(
+				creci: $numeroInscricao,
+				tipoCreci: $tipoCreci
+			);
+		}
+
+		$creciImplementado = CreciImplementado::tryFrom($estadoEntity->getUF());
+		if(!is_a($creciImplementado, CreciImplementado::class)){
+			$mensagem = "Ainda não implementamos o estado informado. {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})";
+
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTAS, 
+				mensagem: $mensagem
+			);
+			throw new Exception($mensagem);
+		}
+
+		$plataformaCreci = match ($creciImplementado) {
+			CreciImplementado::RS => new CreciRSPlataformaImplementacao(),
+			CreciImplementado::ES => new CreciESPlataformaImplementacao(),
+			default => throw new Exception("Ainda não implementamos o estado informado! {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})"),
+		};
+
+		try {
+
+			$resposta = $plataformaCreci->consultarCreci(
+				creci: $numeroInscricao,
+				tipoCreci: $tipoCreci
+			);
+
+			return $resposta;
+
+		}catch (Exception $e){
+
+			$mensagem = "O número de inscrição {$numeroInscricao} não foi encontrado no CRECI {$creciImplementado->value}. - ".$e->getMessage();
+
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTAS, 
+				mensagem: $mensagem
+			);
+
+			throw new Exception($mensagem);
+		}
+	}
+
+	private function encontrarEstadoPorCreci(array $estadosDoBrasil, string $creci): Estado{
 		$estadoEntity = new Estado('NN');
 		foreach($estadosDoBrasil as $estado => $nomeCompletoEstado){
 			$creciTemp = strtoupper($creci);
