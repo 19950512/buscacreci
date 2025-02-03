@@ -12,6 +12,7 @@ Atualmente, o Busca CRECI oferece suporte aos estados do Rio Grande do Sul (RS),
 - [x] RS
 - [x] RJ
 - [x] ES
+- [x] PR
 
 ## Como Usar
 
