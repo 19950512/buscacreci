@@ -36,6 +36,90 @@ class ConselhoNacionalCRECI
                 estado: new Estado('ES'),
                 ativo: false
             ),
+            new MembroDoConselho(
+                estado: new Estado('MG'),
+                ativo: false
+            ),
+            new MembroDoConselho(
+                estado: new Estado('PE'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('GO'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('DF'),
+                ativo: false
+            ),
+            new MembroDoConselho(
+                estado: new Estado('BA'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('SC'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('PA'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('MS'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('CE'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('SE'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('RN'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('AM'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('MT'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('MA'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('PB'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('AL'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('PI'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('TO'),
+                ativo: false
+            ),
+            new MembroDoConselho(
+                estado: new Estado('AC'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('RR'),
+                ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('AP'),
+                ativo: true
+            ),
         ];
     }
 
