@@ -21,5 +21,13 @@
         "guzzlehttp/guzzle": "^7.0",
         "ext-pdo": "*",
         "predis/predis": "^2.2"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.7"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     }
 }
