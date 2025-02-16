@@ -39,8 +39,7 @@ Atualmente, o Busca CRECI oferece suporte aos estados abaixo. Estamos trabalhand
 
 ### Exemplo de Requisição
 ```bash
-curl --request GET \
-  --url 'https://api.buscacreci.com.br/?creci=RJ1234J'
+curl --request GET --url https://api.buscacreci.com.br/?creci=RJ1234J
 ```
 
 ### Exemplo de Resposta
