@@ -37,8 +37,8 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 		$creci = mb_strtoupper($creci);
 
 		// $creci só pode começar com 2 letras e depois números e no final pode ter J ou F
-		if(!preg_match('/^[A-Z]{2}[0-9]{5,6}[JF]{1}$/', $creci)){
-			$mensagem = 'Informe o Creci no formato correto. Exemplo: RS12345F';
+		if(!preg_match('/^[A-Z]{2}[0-9]{4,5,6}[JF]{1}$/', $creci)){
+			$mensagem = 'Informe o Creci no formato correto. Exemplo: RS1234F';
 			$this->discord->enviarMensagem(
 				canalTexto: CanalTexto::CONSULTAS, 
 				mensagem: $mensagem

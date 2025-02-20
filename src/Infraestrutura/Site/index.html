@@ -53,13 +53,18 @@
             align-items: center;
             height: 100vh;
             background-color: #fff;
+			background-image: url('brasilzao_implementado.png');
+			background-size: contain;
+			background-position: center right;
+			background-repeat: no-repeat;
             color: #333;
         }
         h1 {
             margin-bottom: 20px;
-            font-size: 24px;
+            font-size: 30px;
             font-weight: bold;
             text-align: center;
+			text-decoration: none;
         }
         input {
             padding: 10px;
@@ -94,10 +99,43 @@
             color: #333;
             font-size: 18px;
         }
+		#legenda {
+			position: absolute;
+			top: 20px;
+			right: 20px;
+			padding: 10px;
+			background-color: #fff;
+			border-radius: 5px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+		}
+		#legenda_implementado {
+			width: 20px;
+			height: 20px;
+			background-color: #00cf57;
+			display: inline-block;
+			border-radius: 50%;
+			margin-right: 5px;
+		}
+
+		#legenda_nao_implementado {
+			width: 20px;
+			height: 20px;
+			background-color: #999999;
+			display: inline-block;
+			border-radius: 50%;
+			margin-right: 5px;
+		}
     </style>
 </head>
 <body>
+
+	<div id="legenda">
+		<p><div id="legenda_implementado"></div> Implementado</p>
+		<p><div id="legenda_nao_implementado"></div> Não implementado</p>
+	</div>
+
     <h1>Consulte o Registro de Corretores e Imobiliárias</h1>
+	<p>Exemplo: RJ1234J</p>
     <input type="text" id="creci" placeholder="RJ1234J">
     <button onclick="consultarCreci(this)">Consultar</button>
 	<br/>
