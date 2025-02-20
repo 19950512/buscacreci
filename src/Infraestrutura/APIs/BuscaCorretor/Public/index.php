@@ -6,7 +6,15 @@ declare(strict_types=1);
 
 use App\Infraestrutura\APIs\Router;
 
-header("Access-Control-Allow-Origin: https://buscacreci.com.br"); // Permitir apenas buscacreci.com.br
+$allowedOrigins = [
+    'https://buscacreci.com.br',
+    // 'http://localhost:8052'
+];
+
+if (in_array($_SERVER['HTTP_ORIGIN'], $allowedOrigins)) {
+    header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_ORIGIN']);
+}
+
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS"); // Métodos permitidos
 header("Access-Control-Allow-Headers: Content-Type, Authorization"); // Cabeçalhos permitidos
 
