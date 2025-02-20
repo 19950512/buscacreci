@@ -134,7 +134,9 @@
 							resposta += `<strong>Situação:</strong> ${data.situacao}<br>`;
 							resposta += `<strong>Cidade:</strong> ${data.cidade}<br>`;
 							resposta += `<strong>Estado:</strong> ${data.estado}<br>`;
-						} else {
+						} else if(data.message){
+							resposta = data.message;
+						}else{
 							resposta = "CRECI não encontrado ou inválido.";
 						}
 
