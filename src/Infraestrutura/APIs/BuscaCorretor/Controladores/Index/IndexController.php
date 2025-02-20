@@ -26,7 +26,7 @@ final class IndexController extends Controller
 
 		try {
 
-			$creci = trim($_GET['creci']);
+			$creci = htmlspecialchars(strip_tags(trim($_GET['creci'])));
 
 			$consultarCreci = $this->container->get(ConsultarCreci::class);
 			$saidaCreci = $consultarCreci->consultarCreci($creci);

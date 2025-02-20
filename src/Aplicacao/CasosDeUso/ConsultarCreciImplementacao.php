@@ -20,7 +20,6 @@ use App\Dominio\Entidades\ConselhoNacionalCRECI\ConselhoNacionalCRECI;
 use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\ES\CreciESPlataformaImplementacao;
-use App\Infraestrutura\Adaptadores\PlataformasCreci\PR\CreciPRPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\RS\CreciRSPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\Conselho\CreciConselhoPlataformaImplementacao;
 
@@ -34,6 +33,16 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 
 	#[Override] public function consultarCreci(string $creci): SaidaCreci
 	{
+
+		// $creci só pode ter 3 Letras e o restante números - Exemplo: RS 12345 ou RS12345 ou RS12345J ou RS 12345J	ou RS 12345F ou RS12345F
+		if(!preg_match('/^[A-Z]{2} [0-9]{5}[JF]?$/', $creci)){
+			$mensagem = 'Informe o Creci no formato correto. Exemplo: RS 12345 ou RS12345 ou RS12345J ou RS 12345J	ou RS 12345F ou RS12345F';
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTAS, 
+				mensagem: $mensagem
+			);
+			throw new Exception($mensagem);
+		}
 
 		$estadosDoBrasil = Estado::getEstados();
 		$estadoEntity = $this->encontrarEstadoPorCreci($estadosDoBrasil, $creci);
