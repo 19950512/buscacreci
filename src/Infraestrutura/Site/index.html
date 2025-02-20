@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta CRECI - Verifique Corretores e Imobiliárias</title>
+    <meta name="description" content="Consulte registros de corretores e imobiliárias pelo número do CRECI de forma rápida e gratuita. API aberta para integração e verificação de profissionais do mercado imobiliário.">
+	<meta name="keywords" content="creci, corretor, imobiliária, consulta, registro, profissional, mercado imobiliário, imóveis, apartamentos, casas, terrenos, aluguel, venda, compra">
+	<meta name="author" content="Busca CRECI">
+	<meta name="robots" content="index, follow">
+	<meta name="googlebot" content="index, follow">
+	<meta name="rating" content="general">
+	<meta name="referrer" content="no-referrer">
+	<meta name="format-detection" content="telephone=no">
+	<meta name="theme-color" content="#007BFF">
+	<meta name="msapplication-TileColor" content="#007BFF">
+	<link rel="icon" type="image/png" href="logo.png" sizes="32x32">
+	<meta name="msapplication-TileImage" content="mstile-144x144.png">
+	<meta name="msapplication-config" content="browserconfig.xml">
+	<meta name="application-name" content="Busca CRECI">
+	<meta name="apple-mobile-web-app-title" content="Busca CRECI">
+	<meta name="msapplication-tooltip" content="Consulte registros de corretores e imobiliárias pelo número do CRECI de forma rápida e gratuita. API aberta para integração e verificação de profissionais do mercado imobiliário.">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="Busca CRECI">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="application-name" content="Busca CRECI">
+	<meta name="msapplication-starturl" content="https://buscacreci.com.br/">
+	<meta name="msapplication-navbutton-color" content="#007BFF">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="Busca CRECI">
+	<meta property="og:title" content="Consulta CRECI - Verifique Corretores e Imobiliárias">
+	<meta property="og:description" content="Consulte registros de corretores e imobiliárias pelo número do CRECI de forma rápida e gratuita. API aberta para integração e verificação de profissionais do mercado imobiliário.">
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://buscacreci.com.br/">
+	<meta property="og:image" content="https://buscacreci.com.br/logo.png">
+	<meta property="og:image:width" content="1200">
+	<meta property="og:image:height" content="630">
+	<meta property="og:site_name" content="Busca CRECI">
+	<meta property="og:locale" content="pt_BR">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #fff;
+            color: #333;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 250px;
+            text-align: center;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        footer {
+            position: absolute;
+            bottom: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        a {
+            text-decoration: none;
+            color: #333;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Consulte o Registro de Corretores e Imobiliárias</h1>
+    <input type="text" id="creci" placeholder="RJ1234J">
+    <button onclick="consultarCreci(this)">Consultar</button>
+	<br/>
+	<p id="feedback"></p>
+    
+    <footer>
+        <a href="https://github.com/19950512/buscacreci" target="_blank">
+            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/github.svg" alt="GitHub" width="30">
+        </a>
+		<a href="open-source.html">🔓 Sobre Open Source</a>
+        <a href="https://nubank.com.br/cobrar/1ac1f/67b71b4b-1710-4ff8-aed6-2c8e2100e8db" target="_blank">💖 Doações</a>
+
+    </footer>
+    
+    <script>
+        function consultarCreci(btn) {
+			
+			feedback.innerHTML = '';
+            const creci = document.getElementById('creci').value;
+            if (creci) {
+
+				btn.disabled = true;
+				btn.style.cursor = 'not-allowed';
+				btn.style.backgroundColor = '#ccc';
+				let conteudoBTN = btn.innerHTML;
+				btn.innerHTML = 'Consultando...';
+				let resposta = '';
+				fetch(`https://api.buscacreci.com.br/?creci=${creci}`)
+					.then(response => response.json())
+					.then(data => {
+						if (data.codigo) {
+							resposta = `<strong>Nome:</strong> ${data.nomeCompleto}<br>`;
+							resposta += `<strong>CRECI:</strong> ${data.creciCompleto}<br>`;
+							resposta += `<strong>Situação:</strong> ${data.situacao}<br>`;
+							resposta += `<strong>Cidade:</strong> ${data.cidade}<br>`;
+							resposta += `<strong>Estado:</strong> ${data.estado}<br>`;
+						} else {
+							resposta = "CRECI não encontrado ou inválido.";
+						}
+
+						feedback.innerHTML = resposta;
+						btn.disabled = false;
+						btn.style.cursor = 'pointer';
+						btn.style.backgroundColor = '#007BFF';
+						btn.innerHTML = conteudoBTN;
+					})
+					.catch(error => {
+						feedback.innerHTML = 'Erro ao consultar o CRECI.';
+						btn.disabled = false;
+						btn.style.cursor = 'pointer';
+						btn.style.backgroundColor = '#007BFF';
+						btn.innerHTML = conteudoBTN;
+					});
+            } else {
+				feedback.innerHTML = 'Por favor, digite um número de CRECI.';
+            }
+        }
+    </script>
+</body>
+</html>
