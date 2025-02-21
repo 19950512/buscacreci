@@ -10,33 +10,15 @@ O Busca CRECI oferece uma solução abrangente, permitindo a consulta de correto
 # Estados Disponíveis
 Atualmente, o Busca CRECI oferece suporte aos estados marcados abaixo. Estamos trabalhando para expandir nossa cobertura e incluir todos os estados em breve.
 
-- [ ] DF
-- [ ] SP
-- [ ] TO
-- [ ] MG
-- [x] RS
-- [x] RJ
-- [x] ES
-- [x] RO
-- [x] PR
-- [x] PE
-- [x] GO
-- [x] BA
-- [x] SC
-- [x] PA
-- [x] MS
-- [x] CE
-- [x] SE
-- [x] RN
-- [x] AM
-- [x] MT
-- [x] MA
-- [x] PB
-- [x] AL
-- [x] PI
-- [x] AC
-- [x] RR
-- [x] AP
+| SP  | TO  | MG  | RS  | RJ  | ES  | RO  | PR  | PE  | GO  | BA  | SC  | PA  |
+|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| [ ] | [ ] | [ ] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] |
+
+| MS  | CE  | SE  | RN  | AM  | MT  | MA  | PB  | AL  | PI  | AC  | RR  | AP  |
+|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] |
+
+<img src="https://buscacreci.com.br/brasilzao_implementado.png">
 
 ## Como Usar
 
