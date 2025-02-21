@@ -10,9 +10,9 @@ O Busca CRECI oferece uma solução abrangente, permitindo a consulta de correto
 # Estados Disponíveis
 Atualmente, o Busca CRECI oferece suporte aos estados marcados abaixo. Estamos trabalhando para expandir nossa cobertura e incluir todos os estados em breve.
 
-| SP  | TO  | MG  | RS  | RJ  | ES  | RO  | PR  | PE  | GO  | BA  | SC  | PA  |
-|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
-| [ ] | [ ] | [ ] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] |
+| DF  | SP  | TO  | MG  | RS  | RJ  | ES  | RO  | PR  | PE  | GO  | BA  | SC  | PA  |
+|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| [ ] | [ ] | [ ] | [ ] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] |
 
 | MS  | CE  | SE  | RN  | AM  | MT  | MA  | PB  | AL  | PI  | AC  | RR  | AP  |
 |-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
