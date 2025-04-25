@@ -6,6 +6,7 @@ namespace App\Aplicacao\CasosDeUso;
 
 use Override;
 use Exception;
+use App\Dominio\ObjetoValor\Creci;
 use App\Aplicacao\Compartilhado\Cache;
 use App\Dominio\Entidades\CreciEntidade;
 use App\Dominio\ObjetoValor\Endereco\Estado;
@@ -19,8 +20,10 @@ use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesCreci;
 use App\Dominio\Entidades\ConselhoNacionalCRECI\ConselhoNacionalCRECI;
 use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
+use App\Aplicacao\Compartilhado\Captcha\Captcha;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\ES\CreciESPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\RS\CreciRSPlataformaImplementacao;
+use App\Infraestrutura\Adaptadores\PlataformasCreci\SP\CreciSPPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\Conselho\CreciConselhoPlataformaImplementacao;
 
 readonly final class ConsultarCreciImplementacao implements ConsultarCreci
@@ -28,13 +31,16 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 	public function __construct(
 		private CreciRepositorio $creciRepositorio,
 		private Discord $discord,
-		private Cache $cache
+		private Cache $cache,
+		private Captcha $captcha,
 	) {}
 
 	#[Override] public function consultarCreci(string $creci): SaidaCreci
 	{
 
 		$creci = mb_strtoupper($creci);
+
+		$creci = preg_replace('/\s+/', '', $creci);
 
 		// $creci só pode começar com 2 letras e depois números e no final pode ter J ou F
 		if(!preg_match('/^[A-Z]{2}[0-9]{4,6}[JF]{1}$/', $creci)){
@@ -57,6 +63,14 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 				mensagem: $mensagem
 			);
 			throw new Exception($mensagem);
+		}
+
+
+		if($estadoEntity->getUF() == 'SP'){
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTAS, 
+				mensagem: "Atenção, alguem está tentando consultar o CRECI de São Paulo. - {$creci}"
+			);
 		}
 
 		$creciTemporario = strtoupper($creci);
@@ -174,6 +188,9 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 		$plataformaCreci = match ($creciImplementado) {
 			CreciImplementado::RS => new CreciRSPlataformaImplementacao(),
 			CreciImplementado::ES => new CreciESPlataformaImplementacao(),
+			CreciImplementado::SP => new CreciSPPlataformaImplementacao(
+				captcha: $this->captcha,
+			),
 			default => throw new Exception("Ainda não implementamos o estado informado! {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})"),
 		};
 
