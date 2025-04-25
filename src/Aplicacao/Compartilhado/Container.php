@@ -20,12 +20,14 @@ use PDOException;
 use DI\ContainerBuilder;
 use App\Aplicacao\CasosDeUso\ConsultarCreci;
 use App\Dominio\Repositorios\CreciRepositorio;
+use App\Aplicacao\Compartilhado\Captcha\Captcha;
 use App\Aplicacao\Compartilhado\Discord\Discord;
 use App\Aplicacao\CasosDeUso\ConsultarCreciImplementacao;
 use App\Infraestrutura\Adaptadores\EnvrionmentImplementacao;
 use App\Infraestrutura\Adaptadores\Discord\DiscordImplementacao;
 use App\Infraestrutura\Adaptadores\Cache\RedisCacheImplementacao;
 use App\Infraestrutura\Repositorios\CreciRepositorioImplementacao;
+use App\Infraestrutura\Adaptadores\Captcha\Captcha2CaptchaImplementation;
 
 $container = new ContainerBuilder();
 
@@ -75,12 +77,19 @@ $container->addDefinitions([
 			env: $container->get(Envrionment::class)
 		);
 	},
+	Captcha::class => function(Container $container)
+	{
+		return new Captcha2CaptchaImplementation(
+			env: $container->get(Envrionment::class)
+		);
+	},
 	ConsultarCreci::class => function(Container $container)
 	{
 		return new ConsultarCreciImplementacao(
 			creciRepositorio: $container->get(CreciRepositorio::class),
 			discord: $container->get(Discord::class),
-			cache: $container->get(Cache::class)
+			cache: $container->get(Cache::class),
+			captcha: $container->get(Captcha::class)
 		);
 	}
 ]);

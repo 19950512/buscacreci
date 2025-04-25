@@ -163,7 +163,9 @@
 				let conteudoBTN = btn.innerHTML;
 				btn.innerHTML = 'Consultando...';
 				let resposta = '';
-				fetch(`https://api.buscacreci.com.br/?creci=${creci}`)
+				fetch(`https://api.buscacreci.com.br/?creci=${creci}`, {
+					timetout: 3600000, // 1 hora (em milissegundos)
+				})
 					.then(response => response.json())
 					.then(data => {
 						if (data.codigo) {

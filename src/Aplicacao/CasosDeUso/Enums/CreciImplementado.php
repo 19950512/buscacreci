@@ -7,7 +7,6 @@ namespace App\Aplicacao\CasosDeUso\Enums;
 enum CreciImplementado: string
 {
 	case RS = 'RS';
-	case RJ = 'RJ';
 	case ES = 'ES';
-	case PR = 'PR';
+	case SP = 'SP';
 }
