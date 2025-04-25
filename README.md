@@ -12,7 +12,7 @@ Atualmente, o Busca CRECI oferece suporte aos estados marcados abaixo. Estamos t
 
 | DF  | SP  | TO  | MG  | RS  | RJ  | ES  | RO  | PR  | PE  | GO  | BA  | SC  | PA  |
 |-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
-| [ ] | [ ] | [ ] | [ ] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] |
+| [ ] | [X] | [ ] | [ ] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] | [x] |
 
 | MS  | CE  | SE  | RN  | AM  | MT  | MA  | PB  | AL  | PI  | AC  | RR  | AP  |
 |-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
