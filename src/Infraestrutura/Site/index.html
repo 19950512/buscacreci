@@ -105,7 +105,13 @@
             // Decodificar a base64
             const payloadBytes = Uint8Array.from(atob(payloadBase64), c => c.charCodeAt(0));
             const payloadJson = new TextDecoder('utf-8').decode(payloadBytes);
-            const payload = JSON.parse(payloadJson);
+            let payload;
+            try {
+                payload = JSON.parse(payloadJson);
+            } catch (error) {
+                console.error("Failed to parse JWT payload:", error);
+                return; // Exit the function if parsing fails
+            }
 
             // Verifique se a propriedade 'picture' está no payload
             const userProfilePicture = payload.picture;
