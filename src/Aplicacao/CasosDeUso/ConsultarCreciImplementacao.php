@@ -212,11 +212,11 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 
 		}catch (Exception $e){
 
-			$mensagem = "O número de inscrição {$numeroInscricao} não foi encontrado no CRECI {$creciImplementado->value}. - ".$e->getMessage();
+			$mensagem = "O número de inscrição {$numeroInscricao} não foi encontrado no CRECI {$creciImplementado->value}.";
 
 			$this->discord->enviarMensagem(
 				canalTexto: CanalTexto::CONSULTAS, 
-				mensagem: $mensagem
+				mensagem: $mensagem."\nErro: {$e->getMessage()}"
 			);
 
 			throw new Exception($mensagem);

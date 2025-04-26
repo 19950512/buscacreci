@@ -197,11 +197,13 @@
                         }
                         const userPicture = localStorage.getItem('user_picture');
                         if (userPicture) {
-                            document.querySelector('.foto-perfil').src = userPicture; // Exibe a foto de perfil
+                            if(document.querySelector('.foto-perfil')){
+                                document.querySelector('.foto-perfil').src = userPicture; // Exibe a foto de perfil
+                            }
                         }
 					})
 					.catch(error => {
-						feedback.innerHTML = `<div class="card-erro">Erro ao consultar o CRECI.</div>`;
+						feedback.innerHTML = `<div class="card-erro">${error.message}.</div>`;
 					});
 			} else {
 				feedback.innerHTML = `<div class="card-erro">Por favor, digite um número de CRECI.</div>`;
