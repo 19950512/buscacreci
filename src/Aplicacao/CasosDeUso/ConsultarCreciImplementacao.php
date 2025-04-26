@@ -6,21 +6,23 @@ namespace App\Aplicacao\CasosDeUso;
 
 use Override;
 use Exception;
+use DomainException;
 use App\Dominio\ObjetoValor\Creci;
 use App\Aplicacao\Compartilhado\Cache;
 use App\Dominio\Entidades\CreciEntidade;
 use App\Dominio\ObjetoValor\Endereco\Estado;
 use App\Dominio\Repositorios\CreciRepositorio;
 use App\Dominio\ObjetoValor\IdentificacaoUnica;
+use App\Aplicacao\Compartilhado\Captcha\Captcha;
 use App\Aplicacao\Compartilhado\Discord\Discord;
 use App\Aplicacao\CasosDeUso\Enums\CreciImplementado;
+use App\Aplicacao\CasosDeUso\EntradaESaida\ErroDomain;
 use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaCreci;
 use App\Aplicacao\Compartilhado\Discord\Enums\CanalTexto;
 use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesCreci;
 use App\Dominio\Entidades\ConselhoNacionalCRECI\ConselhoNacionalCRECI;
 use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
-use App\Aplicacao\Compartilhado\Captcha\Captcha;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\ES\CreciESPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\RS\CreciRSPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\SP\CreciSPPlataformaImplementacao;
@@ -35,7 +37,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 		private Captcha $captcha,
 	) {}
 
-	#[Override] public function consultarCreci(string $creci): SaidaCreci
+	#[Override] public function consultarCreci(string $creci): SaidaCreci | ErroDomain
 	{
 
 		$creci = mb_strtoupper($creci);
@@ -50,7 +52,10 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 				canalTexto: CanalTexto::CONSULTAS, 
 				mensagem: $mensagem
 			);
-			throw new Exception($mensagem);
+			return new ErroDomain(
+				mensagem: $mensagem,
+				codigo: 422
+			);
 		}
 
 		$estadosDoBrasil = Estado::getEstados();
@@ -62,9 +67,11 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 				canalTexto: CanalTexto::CONSULTAS, 
 				mensagem: $mensagem
 			);
-			throw new Exception($mensagem);
+			return new ErroDomain(
+				mensagem: $mensagem,
+				codigo: 422
+			);
 		}
-
 
 		if($estadoEntity->getUF() == 'SP'){
 			$this->discord->enviarMensagem(

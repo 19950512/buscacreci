@@ -8,6 +8,7 @@ use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
 use App\Aplicacao\CasosDeUso\PlataformaCreci;
 use GuzzleHttp\Client;
 use Exception;
+use Override;
 
 class CreciConselhoPlataformaImplementacao implements PlataformaCreci
 {
@@ -45,7 +46,7 @@ class CreciConselhoPlataformaImplementacao implements PlataformaCreci
         return $response;
     }
 
-    public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
+    #[Override] public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
     {
         $creciConsultado = $this->consultarApiCreci('/form_pesquisa_cadastro_geral_site.php', ["inscricao" => $creci]);
         $creciResponse = json_decode($creciConsultado->getBody()->getContents(), true);

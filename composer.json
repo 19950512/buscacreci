@@ -20,7 +20,8 @@
         "symfony/css-selector": "^6.0|^7.0",
         "guzzlehttp/guzzle": "^7.0",
         "ext-pdo": "*",
-        "predis/predis": "^2.2"
+        "predis/predis": "^2.2",
+        "firebase/php-jwt": "^6.11"
     },
     "require-dev": {
         "pestphp/pest": "^3.7"
