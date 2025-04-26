@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Infraestrutura\APIs\BuscaCorretor\Controladores\Index;
 
-use App\Aplicacao\CasosDeUso\ConsultarCreci;
-use App\Infraestrutura\APIs\BuscaCorretor\Controladores\Middlewares\Controller;
-use DI\Container;
 use Exception;
+use DI\Container;
+use App\Aplicacao\CasosDeUso\ConsultarCreci;
+use App\Aplicacao\CasosDeUso\EntradaESaida\ErroDomain;
+use App\Infraestrutura\APIs\BuscaCorretor\Controladores\Middlewares\Controller;
 
 final class IndexController extends Controller
 {
@@ -30,6 +31,15 @@ final class IndexController extends Controller
 
 			$consultarCreci = $this->container->get(ConsultarCreci::class);
 			$saidaCreci = $consultarCreci->consultarCreci($creci);
+
+			if($saidaCreci instanceof ErroDomain){
+				$this->response([
+					'statusCode' => $saidaCreci->codigo,
+					'statusMessage' => 'Bad Request',
+					'message' => $saidaCreci->mensagem
+				]);
+				return;
+			}
 
 			$this->response([
 				'codigo' => $saidaCreci->creciID,

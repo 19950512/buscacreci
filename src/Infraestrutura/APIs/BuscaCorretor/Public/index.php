@@ -8,8 +8,10 @@ use App\Infraestrutura\APIs\Router;
 
 $allowedOrigins = [
     'https://buscacreci.com.br',
-    // 'http://localhost:8052'
+    'http://localhost:8052'
 ];
+
+session_start();
 
 if (in_array(($_SERVER['HTTP_ORIGIN'] ?? ''), $allowedOrigins)) {
     header("Access-Control-Allow-Origin: " . ($_SERVER['HTTP_ORIGIN'] ?? '*'));

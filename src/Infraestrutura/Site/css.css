@@ -1,0 +1,301 @@
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #fff;
+    background-image: url('brasilzao_implementado.png');
+    background-size: contain;
+    background-position: center right;
+    background-repeat: no-repeat;
+    color: #333;
+}
+h1 {
+    margin-bottom: 20px;
+    font-size: 30px;
+    font-weight: bold;
+    text-align: center;
+}
+input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 250px;
+    text-align: center;
+}
+button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007BFF;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+button:hover {
+    background-color: #0056b3;
+}
+footer {
+    position: absolute;
+    bottom: 20px;
+    display: flex;
+    gap: 15px;
+}
+a {
+    text-decoration: none;
+    color: #333;
+    font-size: 18px;
+}
+#legenda {
+    position: absolute;
+    top: 70px;
+    right: 20px;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+#legenda_implementado, #legenda_nao_implementado {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+#legenda_implementado { background-color: #00cf57; }
+#legenda_nao_implementado { background-color: #999999; }
+
+#top-bar {
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+height: 60px;
+background-color: #ffffffcc;
+display: flex;
+align-items: center;
+box-shadow: 0 0 10px rgba(0,0,0,0.1);
+z-index: 999;
+backdrop-filter: blur(5px);
+padding: 0 20px;
+}
+
+#top-bar .container {
+display: flex;
+justify-content: space-between;
+align-items: center;
+width: 100%;
+max-width: 1150px; /* Limite máximo de largura */
+margin: 0 auto; /* Centraliza o conteúdo */
+}
+
+#top-bar .logo {
+font-size: 20px;
+font-weight: bold;
+color: #007BFF;
+text-align: left;
+flex-grow: 1; /* Faz a logo ocupar o espaço central */
+user-select: none;
+}
+#top-bar .logo h1 {
+text-align: left;
+margin: 0;
+}
+
+
+#top-bar .user-controls {
+display: flex;
+gap: 10px;
+justify-content: normal;
+align-items: baseline;
+}
+
+#top-bar button {
+padding: 6px 12px;
+font-size: 14px;
+background-color: transparent;
+border: 1px solid #007BFF;
+border-radius: 5px;
+color: #007BFF;
+cursor: pointer;
+}
+
+#top-bar button:hover {
+background-color: #007BFF;
+color: white;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Skeleton Loader */
+.loading {
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.foto-skeleton {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #ddd;
+    margin-right: 20px;
+}
+
+.nome-skeleton, .situacao-skeleton, .linha-skeleton {
+    background: #ddd;
+    border-radius: 8px;
+}
+
+.nome-skeleton {
+    width: 150px;
+    height: 20px;
+    margin-bottom: 10px;
+}
+
+.situacao-skeleton {
+    width: 100px;
+    height: 16px;
+}
+
+.linha-skeleton {
+    height: 14px;
+    margin: 10px 0;
+    width: 90%;
+}
+
+/* Animação pulsante */
+@keyframes pulse {
+    0% { background-color: #eee; }
+    50% { background-color: #ddd; }
+    100% { background-color: #eee; }
+}
+  
+
+
+.card-creci {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    max-width: 500px;
+    margin: 30px auto;
+    padding: 20px 25px;
+    animation: fadeIn 0.5s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-topo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.foto-perfil {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 20px;
+    background-color: #f0f0f0;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all 0.4s ease;
+    user-select: none;
+}
+
+/* Quando a imagem carregar */
+.foto-perfil.loaded {
+    opacity: 1;
+    transform: scale(1);
+}
+
+
+.dados-principais h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #333;
+}
+
+.dados-principais .situacao {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.situacao.ativo {
+    color: #2e7d32; /* Verde */
+}
+
+.situacao.inativo {
+    color: #d32f2f; /* Vermelho */
+}
+
+.card-info p {
+    margin: 10px 0;
+    font-size: 1rem;
+    color: #555;
+}
+
+.card-info p strong {
+    color: #000;
+}
+
+.card-erro {
+    background: #ffebee;
+    border: 1px solid #ef9a9a;
+    color: #c62828;
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 450px;
+    margin: 30px auto;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(10px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+

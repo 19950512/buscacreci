@@ -4,199 +4,212 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consulta CRECI - Verifique Corretores e Imobiliárias</title>
-    <meta name="description" content="Consulte registros de corretores e imobiliárias pelo número do CRECI de forma rápida e gratuita. API aberta para integração e verificação de profissionais do mercado imobiliário.">
-	<meta name="keywords" content="creci, corretor, imobiliária, consulta, registro, profissional, mercado imobiliário, imóveis, apartamentos, casas, terrenos, aluguel, venda, compra">
-	<meta name="author" content="Busca CRECI">
-	<meta name="robots" content="index, follow">
-	<meta name="googlebot" content="index, follow">
-	<meta name="rating" content="general">
-	<meta name="referrer" content="no-referrer">
-	<meta name="format-detection" content="telephone=no">
-	<meta name="theme-color" content="#007BFF">
-	<meta name="msapplication-TileColor" content="#007BFF">
-	<link rel="icon" type="image/png" href="logo.png" sizes="32x32">
-	<meta name="msapplication-TileImage" content="mstile-144x144.png">
-	<meta name="msapplication-config" content="browserconfig.xml">
-	<meta name="application-name" content="Busca CRECI">
-	<meta name="apple-mobile-web-app-title" content="Busca CRECI">
-	<meta name="msapplication-tooltip" content="Consulte registros de corretores e imobiliárias pelo número do CRECI de forma rápida e gratuita. API aberta para integração e verificação de profissionais do mercado imobiliário.">
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-	<meta name="apple-mobile-web-app-title" content="Busca CRECI">
-	<meta name="mobile-web-app-capable" content="yes">
-	<meta name="application-name" content="Busca CRECI">
-	<meta name="msapplication-starturl" content="https://buscacreci.com.br/">
-	<meta name="msapplication-navbutton-color" content="#007BFF">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-	<meta name="apple-mobile-web-app-title" content="Busca CRECI">
-	<meta property="og:title" content="Consulta CRECI - Verifique Corretores e Imobiliárias">
-	<meta property="og:description" content="Consulte registros de corretores e imobiliárias pelo número do CRECI de forma rápida e gratuita. API aberta para integração e verificação de profissionais do mercado imobiliário.">
-	<meta property="og:type" content="website">
-	<meta property="og:url" content="https://buscacreci.com.br/">
-	<meta property="og:image" content="https://buscacreci.com.br/logo.png">
-	<meta property="og:image:width" content="1200">
-	<meta property="og:image:height" content="630">
-	<meta property="og:site_name" content="Busca CRECI">
-	<meta property="og:locale" content="pt_BR">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #fff;
-			background-image: url('brasilzao_implementado.png');
-			background-size: contain;
-			background-position: center right;
-			background-repeat: no-repeat;
-            color: #333;
-        }
-        h1 {
-            margin-bottom: 20px;
-            font-size: 30px;
-            font-weight: bold;
-            text-align: center;
-			text-decoration: none;
-        }
-        input {
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: 250px;
-            text-align: center;
-        }
-        button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            background-color: #007BFF;
-            color: #fff;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        footer {
-            position: absolute;
-            bottom: 20px;
-            display: flex;
-            gap: 15px;
-        }
-        a {
-            text-decoration: none;
-            color: #333;
-            font-size: 18px;
-        }
-		#legenda {
-			position: absolute;
-			top: 20px;
-			right: 20px;
-			padding: 10px;
-			background-color: #fff;
-			border-radius: 5px;
-			box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-		}
-		#legenda_implementado {
-			width: 20px;
-			height: 20px;
-			background-color: #00cf57;
-			display: inline-block;
-			border-radius: 50%;
-			margin-right: 5px;
-		}
+    <meta name="description" content="Consulte registros de corretores e imobiliárias usando o número do CRECI. Verifique a situação profissional de forma rápida, gratuita e confiável.">
 
-		#legenda_nao_implementado {
-			width: 20px;
-			height: 20px;
-			background-color: #999999;
-			display: inline-block;
-			border-radius: 50%;
-			margin-right: 5px;
-		}
-    </style>
+    <!-- Open Graph SEO -->
+    <meta property="og:title" content="Consulta CRECI - Verifique Corretores e Imobiliárias">
+    <meta property="og:description" content="Consulte registros de corretores e imobiliárias usando o número do CRECI. Grátis e rápido.">
+    <meta property="og:image" content="/logo.png">
+    <meta property="og:type" content="website">
+
+    <link rel="icon" type="image/png" href="logo.png" sizes="32x32">
+    <link rel="preload" href="/css.css" as="style">
+    <link rel="stylesheet" href="/css.css">
+    
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
+	<header id="top-bar">
+		<div class="container">
+		  <div class="logo">
+			<h1>
+                <img src="/logo-branca.png" alt="Logo Busca CRECI - Consulta de Corretores" width="40" style="vertical-align: middle;">
+                Busca CRECI
+            </h1>
+		  </div>
 
-	<div id="legenda">
-		<p><div id="legenda_implementado"></div> Implementado</p>
-		<p><div id="legenda_nao_implementado"></div> Não implementado</p>
-	</div>
+		  <div class="user-controls" id="user-controls">
+			<!-- Aqui o login/logout será gerenciado via JS -->
+		  </div>
+		</div>
+	</header>
 
-    <h1>Consulte o Registro de Corretores e Imobiliárias</h1>
-	<p>Exemplo: RJ1234J</p>
-    <input type="text" id="creci" placeholder="RJ1234J">
-    <button onclick="consultarCreci(this)">Consultar</button>
-	<br/>
-	<p id="feedback"></p>
-    
+    <main>
+        <section id="consulta">
+            <h2>Consulte o Registro de Corretores e Imobiliárias</h2>
+            <p>Exemplo de número: <strong>RJ1234J</strong></p>
+            <input type="text" id="creci" placeholder="Digite o número CRECI" aria-label="Digite o número CRECI" oninput="consultarCreciAuto()">
+            <p id="feedback"></p>
+        </section>
+
+        <section id="legenda">
+            <h3>Legenda</h3>
+            <p><span id="legenda_implementado"></span> Implementado</p>
+            <p><span id="legenda_nao_implementado"></span> Não implementado</p>
+        </section>
+    </main>
+
     <footer>
-        <a href="https://github.com/19950512/buscacreci" target="_blank">
-            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/github.svg" alt="GitHub" width="30">
+        <a href="https://github.com/19950512/buscacreci" target="_blank" title="Ver no GitHub">
+            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/github.svg" alt="GitHub Busca CRECI" width="30">
         </a>
-		<a href="open-source.html">🔓 Sobre Open Source</a>
-        <a href="https://nubank.com.br/cobrar/1ac1f/67b71b4b-1710-4ff8-aed6-2c8e2100e8db" target="_blank">💖 Doações</a>
-
+        <a href="open-source.html">🔓 Sobre Open Source</a>
+        <a href="https://nubank.com.br/cobrar/1ac1f/67b71b4b-1710-4ff8-aed6-2c8e2100e8db" target="_blank">💖 Apoie o Projeto</a>
     </footer>
-    
-    <script>
-        function consultarCreci(btn) {
-			
-			feedback.innerHTML = '';
-            const creci = document.getElementById('creci').value;
-            if (creci) {
 
-				btn.disabled = true;
-				btn.style.cursor = 'not-allowed';
-				btn.style.backgroundColor = '#ccc';
-				let conteudoBTN = btn.innerHTML;
-				btn.innerHTML = 'Consultando...';
-				let resposta = '';
-				fetch(`https://api.buscacreci.com.br/?creci=${creci}`, {
-					timetout: 3600000, // 1 hora (em milissegundos)
-				})
-					.then(response => response.json())
-					.then(data => {
-						if (data.codigo) {
-							resposta = `<strong>Nome:</strong> ${data.nomeCompleto}<br>`;
-							resposta += `<strong>CRECI:</strong> ${data.creciCompleto}<br>`;
-							resposta += `<strong>Situação:</strong> ${data.situacao}<br>`;
-							resposta += `<strong>Cidade:</strong> ${data.cidade}<br>`;
-							resposta += `<strong>Estado:</strong> ${data.estado}<br>`;
-						} else if(data.message){
-							resposta = data.message;
-						}else{
-							resposta = "CRECI não encontrado ou inválido.";
-						}
+	<script>
+		const userControls = document.getElementById('user-controls');
+        let timerConsulta;
 
-						feedback.innerHTML = resposta;
-						btn.disabled = false;
-						btn.style.cursor = 'pointer';
-						btn.style.backgroundColor = '#007BFF';
-						btn.innerHTML = conteudoBTN;
-					})
-					.catch(error => {
-						feedback.innerHTML = 'Erro ao consultar o CRECI.';
-						btn.disabled = false;
-						btn.style.cursor = 'pointer';
-						btn.style.backgroundColor = '#007BFF';
-						btn.innerHTML = conteudoBTN;
-					});
+        function consultarCreciAuto() {
+            clearTimeout(timerConsulta);
+            timerConsulta = setTimeout(() => {
+                const creci = document.getElementById('creci').value.trim();
+                if (creci) {
+                    consultarCreci();
+                } else {
+                    feedback.innerHTML = '';
+                }
+            }, 1000); // Espera 1 segundo depois da última tecla
+        }
+
+        // Detecta se está no ambiente de desenvolvimento (localhost) ou produção
+        const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const apiUrl = isDevelopment ? 'http://localhost:8053' : 'https://api.buscacreci.com.br';  // Troque o URL de produção aqui
+
+        function renderUser() {
+            const name = localStorage.getItem('user_name');
+
+            if (name) {
+                userControls.innerHTML = `
+                    <span style="margin-right: 10px;">👋 Olá, ${name}</span>
+                    <button onclick="logout()" style="margin-left: 5px;">Sair</button>
+                `;
             } else {
-				feedback.innerHTML = 'Por favor, digite um número de CRECI.';
+                userControls.innerHTML = `
+                    <!-- Google Login -->
+                    <div id="g_id_onload"
+                        data-client_id="207757088389-nlemog73prsh5rfeg1ckbm2cv50cvjjc.apps.googleusercontent.com"
+                        data-callback="handleCredentialResponse"
+                        data-auto_prompt="true"
+                        data-scope="openid profile email">
+                    </div>
+                    <div class="g_id_signin" data-type="standard" data-size="large"></div>
+                `;
             }
         }
-    </script>
+        function handleCredentialResponse(response) {
+            const jwt = response.credential;
+            const payloadBase64 = jwt.split('.')[1];
+
+            // Decodificar a base64
+            const payloadBytes = Uint8Array.from(atob(payloadBase64), c => c.charCodeAt(0));
+            const payloadJson = new TextDecoder('utf-8').decode(payloadBytes);
+            let payload;
+            try {
+                payload = JSON.parse(payloadJson);
+            } catch (error) {
+                console.error("Failed to parse JWT payload:", error);
+                return; // Exit the function if parsing fails
+            }
+
+            // Verifique se a propriedade 'picture' está no payload
+            const userProfilePicture = payload.picture;
+
+            console.log(payload); // Verifique o conteúdo do payload no console
+
+            if (userProfilePicture) {
+                localStorage.setItem('user_picture', userProfilePicture); // Armazenar a foto de perfil no localStorage
+            }
+
+            localStorage.setItem('user_name', payload.name);
+            localStorage.setItem('user_email', payload.email);
+            window.location.reload(); // Recarrega a página para atualizar o conteúdo com a imagem
+        }
+
+
+		function logout() {
+			localStorage.clear();
+			window.location.reload();
+		}
+
+		function consultarCreci() {
+            const feedback = document.getElementById('feedback');
+			const creci = document.getElementById('creci').value.trim();
+
+            feedback.innerHTML = `
+            <div class="card-creci loading">
+                <div class="card-topo">
+                    <div class="foto-skeleton"></div>
+                    <div class="dados-principais">
+                        <div class="nome-skeleton"></div>
+                        <div class="situacao-skeleton"></div>
+                    </div>
+                </div>
+                <div class="card-info">
+                    <div class="linha-skeleton"></div>
+                    <div class="linha-skeleton"></div>
+                    <div class="linha-skeleton"></div>
+                    <div class="linha-skeleton"></div>
+                </div>
+            </div>
+            `;
+
+			if (creci) {
+				fetch(`${apiUrl}/?creci=${encodeURIComponent(creci)}`)
+					.then(response => response.json())
+					.then(data => {
+                        let resposta = '';
+                        if(data.codigo){
+                            
+                            resposta = `
+                            <div class="card-creci">
+                                <div class="card-topo">
+                                    <img src="${data.fotoPerfil || '/user-default.jpg'}" alt="Foto Perfil de ${data.nomeCompleto}" class="foto-perfil">
+                                    <div class="dados-principais">
+                                        <h2>${data.nomeCompleto}</h2>
+                                        <p class="situacao ${data.situacao.toLowerCase()}">${data.situacao}</p>
+                                    </div>
+                                </div>
+                                <div class="card-info">
+                                    <p><strong>CRECI:</strong> ${data.creciCompleto}</p>
+                                    ${data.cpf ? `<p><strong>CPF:</strong> ${data.cpf}</p>` : ''}
+                                    ${data.telefone ? `<p><strong>Telefone:</strong> ${data.telefone}</p>` : ''}
+                                    ${data.email ? `<p><strong>Email:</strong> ${data.email}</p>` : ''}
+                                    <p><strong>Cidade:</strong> ${data.cidade}</p>
+                                    <p><strong>Estado:</strong> ${data.estado}</p>
+                                </div>
+                            </div>
+                            `;
+                        } else if (data.message) {
+                            resposta = `<div class="card-erro">${data.message}</div>`;
+                        } else {
+                            resposta = `<div class="card-erro">CRECI não encontrado ou inválido.</div>`;
+                        }
+                        feedback.innerHTML = resposta;
+
+                        // Animação na imagem de perfil
+                        const imgPerfil = document.querySelector('.foto-perfil');
+                        if (imgPerfil) {
+                            imgPerfil.onload = () => {
+                                imgPerfil.classList.add('loaded');
+                            }
+                        }
+                        const userPicture = localStorage.getItem('user_picture');
+                        if (userPicture) {
+                            document.querySelector('.foto-perfil').src = userPicture; // Exibe a foto de perfil
+                        }
+					})
+					.catch(error => {
+						feedback.innerHTML = `<div class="card-erro">Erro ao consultar o CRECI.</div>`;
+					});
+			} else {
+				feedback.innerHTML = `<div class="card-erro">Por favor, digite um número de CRECI.</div>`;
+			}
+		}
+
+		// Ao carregar a página
+		renderUser();
+	</script>
 </body>
 </html>
