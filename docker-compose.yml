@@ -17,20 +17,6 @@ services:
     networks:
       - buscacreci_network
 
-  site:
-    image: 'nginx:alpine'
-    container_name: buscacreci_nginx_site
-    working_dir: /application
-    depends_on:
-      - postgres
-    volumes:
-      - './:/application'
-      - './docker/nginx/nginx_site.conf:/etc/nginx/conf.d/default.conf'
-    ports:
-      - '8052:80'
-    networks:
-      - buscacreci_network
-
   api:
     image: 'nginx:alpine'
     container_name: buscacreci_nginx_api

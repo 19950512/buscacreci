@@ -72,9 +72,7 @@ docker compose up -d
 
 Quando todos os containers estiverem **Started**, estará disponível os links:
 
-- Site -> http://localhost:8052
 - API -> http://localhost:8053
 
 
-
-
+SITE: https://github.com/19950512/buscacrecisite

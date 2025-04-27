@@ -1,4 +1,0 @@
-User-agent: *
-Disallow: /painel.html
-
-Sitemap: https://buscacreci.com.br/sitemap.xml
