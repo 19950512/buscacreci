@@ -8,7 +8,8 @@ use App\Infraestrutura\APIs\Router;
 
 $allowedOrigins = [
     'https://buscacreci.com.br',
-    'http://localhost:8052'
+    'http://localhost:8052',
+    'http://localhost:3000',
 ];
 
 session_start();

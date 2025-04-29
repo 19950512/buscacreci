@@ -56,6 +56,7 @@ readonly class CreciRepositorioImplementacao implements CreciRepositorio
 			cidade: $creci['cidade'],
 			estado: $creci['estado'],
 			numeroDocumento: $creci['numero_documento'],
+			data: $creci['atualizado_em'],
 		);
 	}
 

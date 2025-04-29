@@ -48,6 +48,7 @@ final class IndexController extends Controller
 				'situacao' => $saidaCreci->situacao,
 				'cidade' => $saidaCreci->cidade,
 				'estado' => $saidaCreci->estado,
+				'momento' => $saidaCreci->data,
 			]);
 
 		}catch (Exception $e){

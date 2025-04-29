@@ -16,5 +16,6 @@ final readonly class SaidaInformacoesCreci
 		public string $cidade,
 		public string $estado,
 		public string $numeroDocumento,
+		public string $data,
 	) {}
 }

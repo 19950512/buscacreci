@@ -103,6 +103,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 				cidade: $creciData->cidade,
 				estado: $creciData->estado,
 				numeroDocumento: $creciData->numeroDocumento,
+				data: $creciData->data,
 			);
 
 			$this->discord->enviarMensagem(
@@ -129,6 +130,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			cidade: $resposta->cidade,
 			estado: $resposta->estado,
 			numeroDocumento: $resposta->numeroDocumento,
+			data: $resposta->data,
  		);
 		$creciEntity = CreciEntidade::build($paramsBuildCreciEntidade);
 
@@ -155,6 +157,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			cidade: $creciEntity->cidade->get(),
 			estado: $creciEntity->estado->get(),
 			numeroDocumento: $creciEntity->numeroDocumento->get(),
+			data: $creciEntity->atualizadoEm->format('d/m/Y').' às '.$creciEntity->atualizadoEm->format('H:i'),
 		);
 
 		$this->discord->enviarMensagem(
