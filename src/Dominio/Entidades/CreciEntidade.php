@@ -23,7 +23,7 @@ class CreciEntidade
 	public function __construct(
 		readonly public IdentificacaoUnica $codigo,
 		public Creci $creci,
-		public NomeCompleto $nomeCompleto,
+		public NomeCompleto | Apelido $nomeCompleto,
 		public DocumentoIdentificacao $numeroDocumento,
 		public Ativo $situacao,
 		public Apelido $cidade,
@@ -36,7 +36,12 @@ class CreciEntidade
 
 		$codigo = new IdentificacaoUnica($parametros->creciCodigo);
 		$creci = new Creci($parametros->creciCompleto);
-		$nomeCompleto = new NomeCompleto($parametros->nomeCompleto);
+
+		$nomeCompleto = new Apelido($parametros->nomeCompleto);
+		if(str_contains($parametros->creciCompleto, 'F')){
+			$nomeCompleto = new NomeCompleto($parametros->nomeCompleto);
+		}
+
 		$situacao = new Ativo($parametros->situacao == 'Ativo');
 		$cidade = new Apelido(empty($parametros->cidade) ? $parametros->estado : $parametros->cidade);
 		$estado = new Estado($parametros->estado);
