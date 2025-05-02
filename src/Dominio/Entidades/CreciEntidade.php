@@ -12,6 +12,7 @@ use App\Dominio\ObjetoValor\Ativo;
 use App\Dominio\ObjetoValor\Creci;
 use App\Dominio\ObjetoValor\Apelido;
 use App\Dominio\ObjetoValor\NomeCompleto;
+use App\Dominio\ObjetoValor\TextoSimples;
 use App\Dominio\ObjetoValor\Endereco\Estado;
 use App\Dominio\ObjetoValor\IdentificacaoUnica;
 use App\Dominio\ObjetoValor\DocumentoNaoInformado;
@@ -23,7 +24,7 @@ class CreciEntidade
 	public function __construct(
 		readonly public IdentificacaoUnica $codigo,
 		public Creci $creci,
-		public NomeCompleto | Apelido $nomeCompleto,
+		public NomeCompleto | TextoSimples $nomeCompleto,
 		public DocumentoIdentificacao $numeroDocumento,
 		public Ativo $situacao,
 		public Apelido $cidade,
@@ -37,7 +38,7 @@ class CreciEntidade
 		$codigo = new IdentificacaoUnica($parametros->creciCodigo);
 		$creci = new Creci($parametros->creciCompleto);
 
-		$nomeCompleto = new Apelido($parametros->nomeCompleto);
+		$nomeCompleto = new TextoSimples($parametros->nomeCompleto);
 		if(str_contains($parametros->creciCompleto, 'F')){
 			$nomeCompleto = new NomeCompleto($parametros->nomeCompleto);
 		}
