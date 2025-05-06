@@ -21,7 +21,8 @@
         "guzzlehttp/guzzle": "^7.0",
         "ext-pdo": "*",
         "predis/predis": "^2.2",
-        "firebase/php-jwt": "^6.11"
+        "firebase/php-jwt": "^6.11",
+        "php-amqplib/php-amqplib": "^3.7"
     },
     "require-dev": {
         "pestphp/pest": "^3.7"

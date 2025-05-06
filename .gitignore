@@ -10,3 +10,4 @@ composer.lock
 cookies.txt
 
 src/Aplicacao/Compartilhado/Discord/Enums/DiscordWebhooks.php
+docker/rabbitmq

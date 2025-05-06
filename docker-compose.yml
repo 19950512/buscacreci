@@ -32,6 +32,19 @@ services:
     networks:
       - buscacreci_network
 
+  laucher-queue:
+    build: ./docker/php-fpm # Use o Dockerfile para construir a imagem
+    command: php src/Infraestrutura/Workers/laucher.php # Comando para iniciar o worker
+    volumes:
+      - './:/application' # Mapeie o código-fonte para o contêiner
+    depends_on:
+      - rabbitmq-master # Certifique-se de que o RabbitMQ esteja disponível antes de iniciar o worker
+    deploy:
+      replicas: 1 # Número inicial de réplicas
+    networks:
+      - buscacreci_network
+
+
   php-fpm:
     build: ./docker/php-fpm
     container_name: buscacreci_php
@@ -50,6 +63,42 @@ services:
       - DB_USER=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
 
+  rabbitmq-master:
+    image: rabbitmq:3.8-management-alpine
+    hostname: rabbitmq-master
+    restart: unless-stopped
+    ports:
+      - "1${EVENT_BUS_PORT}:1${EVENT_BUS_PORT}"
+      - "${EVENT_BUS_PORT}:${EVENT_BUS_PORT}"
+      - "15692:15692"
+    volumes:
+      - './docker/rabbitmq:/var/lib/rabbitmq'
+    networks:
+      - buscacreci_network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  rabbitmq-slave:
+    image: rabbitmq:3.8-management-alpine
+    hostname: rabbitmq-slave
+    restart: unless-stopped
+    volumes:
+      - './docker/rabbitmq:/var/lib/rabbitmq'
+    networks:
+      - buscacreci_network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "localhost", "${EVENT_BUS_PORT}" ]
+      interval: 5s
+      timeout: 15s
+      retries: 1
+    deploy:
+      replicas: 2
+      placement:
+        constraints:
+          - node.role == worker
 networks:
   buscacreci_network:
 

@@ -22,12 +22,14 @@ use App\Aplicacao\CasosDeUso\ConsultarCreci;
 use App\Dominio\Repositorios\CreciRepositorio;
 use App\Aplicacao\Compartilhado\Captcha\Captcha;
 use App\Aplicacao\Compartilhado\Discord\Discord;
+use App\Aplicacao\Compartilhado\Mensageria\Mensageria;
 use App\Aplicacao\CasosDeUso\ConsultarCreciImplementacao;
 use App\Infraestrutura\Adaptadores\EnvrionmentImplementacao;
 use App\Infraestrutura\Adaptadores\Discord\DiscordImplementacao;
 use App\Infraestrutura\Adaptadores\Cache\RedisCacheImplementacao;
 use App\Infraestrutura\Repositorios\CreciRepositorioImplementacao;
 use App\Infraestrutura\Adaptadores\Captcha\Captcha2CaptchaImplementation;
+use App\Infraestrutura\Adaptadores\Mensageria\ImplementacaoMensageriaRabbitMQ;
 
 $container = new ContainerBuilder();
 
@@ -40,6 +42,12 @@ $container->addDefinitions([
 	{
 		return new RedisCacheImplementacao(
 			env: $container->get(Envrionment::class)
+		);
+	},
+	Mensageria::class => function(Container $container)
+	{
+		return new ImplementacaoMensageriaRabbitMQ(
+			ambiente: $container->get(Envrionment::class)
 		);
 	},
 	PDO::class => function(Container $container)
