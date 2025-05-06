@@ -24,7 +24,7 @@ final readonly class RedisCacheImplementacao implements Cache
 
         $configuracao = [
             "scheme" => $this->env->get('REDIS_SCHEME'),
-            "host" => (new IPHost())->getIp(),
+            "host" => $this->env->get('REDIS_HOST'),
             "port" => $this->env->get('REDIS_PORT'),
             "password" => $this->env->get('REDIS_PASSWORD'),
         ];

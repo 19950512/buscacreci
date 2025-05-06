@@ -8,6 +8,7 @@ use Exception;
 use DI\Container;
 use App\Aplicacao\CasosDeUso\ConsultarCreci;
 use App\Aplicacao\CasosDeUso\EntradaESaida\ErroDomain;
+use App\Dominio\ObjetoValor\IdentificacaoUnica;
 use App\Infraestrutura\APIs\BuscaCorretor\Controladores\Middlewares\Controller;
 
 final class IndexController extends Controller
@@ -30,25 +31,31 @@ final class IndexController extends Controller
 			$creci = htmlspecialchars(strip_tags(trim($_GET['creci'])));
 
 			$consultarCreci = $this->container->get(ConsultarCreci::class);
-			$saidaCreci = $consultarCreci->consultarCreci($creci);
+			$resposta = $consultarCreci->consultarCreci($creci);
 
-			if($saidaCreci instanceof ErroDomain){
+			if($resposta instanceof ErroDomain){
 				$this->response([
-					'statusCode' => $saidaCreci->codigo,
+					'statusCode' => $resposta->codigo,
 					'statusMessage' => 'Bad Request',
-					'message' => $saidaCreci->mensagem
+					'message' => $resposta->mensagem
+				]);
+				return;
+			}
+
+			if(is_a($resposta, IdentificacaoUnica::class)){
+				$this->response([
+					'statusCode' => 200,
+					'statusMessage' => 'OK',
+					'message' => 'Seu CRECI foi enviado para o sistema de consulta, você pode acompanhar o status da consulta pelo código abaixo.',
+					'codigo_solicitacao' => $resposta->get()
 				]);
 				return;
 			}
 
 			$this->response([
-				'codigo' => $saidaCreci->creciID,
-				'creciCompleto' => $saidaCreci->creciCompleto,
-				'nomeCompleto' => $saidaCreci->nomeCompleto,
-				'situacao' => $saidaCreci->situacao,
-				'cidade' => $saidaCreci->cidade,
-				'estado' => $saidaCreci->estado,
-				'momento' => $saidaCreci->data,
+				'statusCode' => 422,
+				'statusMessage' => 'Unprocessable Entity',
+				'message' => 'Ocorreu um erro ao processar a consulta do CRECI. Tente novamente mais tarde.'
 			]);
 
 		}catch (Exception $e){

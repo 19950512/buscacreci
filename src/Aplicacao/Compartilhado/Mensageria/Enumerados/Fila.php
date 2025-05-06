@@ -9,6 +9,9 @@ enum Fila: string
     case EMISSAO_EMAIL_QUEUE = 'emissao_email_queue';
     case EMISSAO_EMAIL_QUEUE_DLQ_QUEUE = 'emissao_email_queue_dlq_queue';
 
+    case CONSULTA_CRECI_QUEUE = 'consulta_creci_queue';
+    case CONSULTA_CRECI_QUEUE_DLQ_QUEUE = 'consulta_creci_queue_dlq_queue';
+
     static public function Ligacoes(): array
     {
         return [
@@ -21,6 +24,17 @@ enum Fila: string
             [
                 'queue' => self::EMISSAO_EMAIL_QUEUE_DLQ_QUEUE,
                 'exchange' => TrocaMensagens::EMISSAO_EMAIL_DLX_EXCHANGE,
+            ],
+
+
+            // CONSULTA CRECI
+            [
+                'queue' => self::CONSULTA_CRECI_QUEUE,
+                'exchange' => TrocaMensagens::CONSULTA_CRECI_EXCHANGE,
+            ],
+            [
+                'queue' => self::CONSULTA_CRECI_QUEUE_DLQ_QUEUE,
+                'exchange' => TrocaMensagens::CONSULTA_CRECI_DLX_EXCHANGE,
             ],
         ];
     }
@@ -37,6 +51,16 @@ enum Fila: string
             [
                 'queue' => Fila::EMISSAO_EMAIL_QUEUE_DLQ_QUEUE,
                 'dlx' => TrocaMensagens::EMISSAO_EMAIL_DLX_EXCHANGE,
+            ],
+
+            // CONSULTA CRECI
+            [
+                'queue' => Fila::CONSULTA_CRECI_QUEUE,
+                'dlx' => TrocaMensagens::CONSULTA_CRECI_DLX_EXCHANGE,
+            ],
+            [
+                'queue' => Fila::CONSULTA_CRECI_QUEUE_DLQ_QUEUE,
+                'dlx' => TrocaMensagens::CONSULTA_CRECI_DLX_EXCHANGE,
             ],
         ];
     }

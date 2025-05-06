@@ -17,7 +17,7 @@ use App\Aplicacao\Compartilhado\Mensageria\Enumerados\Fila;
 use App\Aplicacao\Compartilhado\Mensageria\Enumerados\Evento;
 use App\Aplicacao\Compartilhado\Mensageria\Enumerados\TrocaMensagens;
 
-readonly class ImplementacaoMensageriaRabbitMQ implements Mensageria
+readonly final class ImplementacaoMensageriaRabbitMQ implements Mensageria
 {
 
     private AMQPStreamConnection $connection;
@@ -26,7 +26,6 @@ readonly class ImplementacaoMensageriaRabbitMQ implements Mensageria
     public function __construct(
         private Envrionment $ambiente
     ){
-        
         $host = $this->ambiente->get('EVENT_BUS_HOST');
         $port = $this->ambiente->get('EVENT_BUS_PORT');
         $user = $this->ambiente->get('EVENT_BUS_USER');
@@ -35,7 +34,8 @@ readonly class ImplementacaoMensageriaRabbitMQ implements Mensageria
         $retry_delay_seconds = (int) $this->ambiente->get('EVENT_BUS_RETRY_CONNECTIONS_DELAY_SECONDS');
 
         $attempts = 0;
-        while ($attempts < $max_retry_connections) {
+        do{
+
             try {
                 $this->connection = new AMQPStreamConnection(
                     $host,
@@ -45,24 +45,21 @@ readonly class ImplementacaoMensageriaRabbitMQ implements Mensageria
                 );
                 break;
             } catch (AMQPIOException $e) {
-                echo "Erro de E/S: " . $e->getMessage() . "\n";
+                //echo "Erro de E/S: " . $e->getMessage() . "\n";
             } catch (AMQPRuntimeException $e) {
-                echo "Erro de tempo de execução: " . $e->getMessage() . "\n";
+                //echo "Erro de tempo de execução: " . $e->getMessage() . "\n";
             } catch (Exception $e) {
-                echo "Erro desconhecido: " . $e->getMessage() . "\n";
+                //echo "Erro desconhecido: " . $e->getMessage() . "\n";
             }
-
-            $attempts++;
-            if ($attempts < $max_retry_connections) {
-               // echo "Tentando novamente em $retry_delay_seconds segundos...\n";
-                sleep($retry_delay_seconds);
-            } else {
-               // echo "Limite máximo de tentativas de conexão excedido\n";
-                break;
-            }
-        }
+            
+        }while(++$attempts < $max_retry_connections);
 
         $this->channel = $this->connection->channel();
+    }
+
+    public function mensageriaEstaAtiva(): bool
+    {
+        return $this->connection->isConnected();
     }
 
     public function publicar(Evento $evento, string $message): void
@@ -182,6 +179,7 @@ readonly class ImplementacaoMensageriaRabbitMQ implements Mensageria
                 exchange: $exchange['exchange']->value,
                 type: $exchange['type'],
                 durable: true,
+                passive: false,
                 auto_delete: false
             );
         }
@@ -192,17 +190,50 @@ readonly class ImplementacaoMensageriaRabbitMQ implements Mensageria
 
         foreach(Fila::Filas() as $queue){
 
-            $argumentsDLX = [];
-            if(isset($queue['dlx']) and is_a($queue['dlx'], TrocaMensagens::class)){
-                $argumentsDLX['x-dead-letter-exchange'] = $queue['dlx']->value;
+            if(isset($queue['dead_letter_queue']) and is_a($queue['dead_letter_queue'], Fila::class)){
+
+                $args = new AMQPTable();
+                $args->set('x-message-ttl', 10000); // Aguarda 10s antes de voltar para a fila principal
+                $args->set('x-dead-letter-exchange', '');
+                
+                if(isset($queue['main_queue']) and is_a($queue['main_queue'], Fila::class)){
+                    $args->set('x-dead-letter-routing-key', $queue['main_queue']->value); // Define a chave de roteamento para a fila principal
+                }
+
+                $this->channel->queue_declare(
+                    queue: $queue['dead_letter_queue']->value, // Nome da fila
+                    passive: false,         // Passivo
+                    durable: true,          // Durável
+                    exclusive: false,       // Exclusiva
+                    auto_delete: false,     // Auto Delete
+                    nowait: false,          // Não espera resposta
+                    arguments: $args        // Argumentos com configuração de DLX e TTL
+                );
             }
 
-            $this->channel->queue_declare(
-                queue: $queue['queue']->value,
-                durable: true,
-                auto_delete: false,
-                arguments: new AMQPTable($argumentsDLX)
-            );
+            if(isset($queue['main_queue']) and is_a($queue['main_queue'], Fila::class)){
+
+                // 3️⃣ Criar a Fila Principal com DLX Configurada
+                $argsMain = new AMQPTable();
+
+                if(isset($queue['dead_letter_exchange']) and is_a($queue['dead_letter_exchange'], TrocaMensagens::class)){
+                    $argsMain->set('x-dead-letter-exchange', $queue['dead_letter_exchange']->value);  // Define a DLX para mensagens rejeitadas
+                }
+
+                if(isset($queue['dead_letter_queue']) and is_a($queue['dead_letter_queue'], Fila::class)){
+                    $argsMain->set('x-dead-letter-routing-key', $queue['dead_letter_queue']->value);  // Define a DLQ como destino para as mensagens rejeitadas
+                }
+
+                $this->channel->queue_declare(
+                    queue: $queue['main_queue']->value, // Nome da fila
+                    passive: false,                 // Passivo
+                    durable: true,                  // Durável
+                    exclusive: false,               // Exclusiva
+                    auto_delete: false,             // Auto Delete
+                    nowait: false,                  // Não espera resposta
+                    arguments: $argsMain            // Argumentos para DLX e DLQ
+                );
+            }
         }
     }
 
@@ -211,14 +242,29 @@ readonly class ImplementacaoMensageriaRabbitMQ implements Mensageria
 
         foreach(Fila::Ligacoes() as $bind){
 
-            if(!is_a($bind['queue'], Fila::class) OR !is_a($bind['exchange'], TrocaMensagens::class)){
-                throw new Exception("A fila {$bind['queue']->value} não pode ser vinculada a troca {$bind['exchange']->value}");
+            if(
+                isset($bind['dead_letter_queue']) and is_a($bind['dead_letter_queue'], Fila::class)
+                AND 
+                isset($bind['dead_letter_exchange']) and is_a($bind['dead_letter_exchange'], TrocaMensagens::class)
+            ){
+                $this->channel->queue_bind(
+                    queue: $bind['dead_letter_queue']->value,
+                    exchange: $bind['dead_letter_exchange']->value,
+                    routing_key: $bind['dead_letter_queue']->value
+                );
             }
 
-            $this->channel->queue_bind(
-                queue: $bind['queue']->value,
-                exchange: $bind['exchange']->value,
-            );
+            if(
+                isset($bind['main_queue']) and is_a($bind['main_queue'], Fila::class)
+                AND 
+                isset($bind['dead_letter_exchange']) and is_a($bind['dead_letter_exchange'], TrocaMensagens::class)
+            ){
+                $this->channel->queue_bind(
+                    queue: $bind['main_queue']->value,
+                    exchange: $bind['dead_letter_exchange']->value,
+                    routing_key: $bind['main_queue']->value
+                );
+            }
         }
     }
 

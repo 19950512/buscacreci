@@ -15,7 +15,9 @@ CREATE TABLE public.consultas_creci
 (
     codigo serial NOT NULL,
     creci character varying NOT NULL,
-    usuario_codigo integer NOT NULL,
+    creci_id character varying,
+    codigo_solicitacao character varying,
+    usuario_codigo integer,
     data_cadastro timestamp with time zone,
     data_finalizacao timestamp with time zone,
     situacao character varying,

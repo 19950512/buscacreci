@@ -97,7 +97,8 @@ $container->addDefinitions([
 			creciRepositorio: $container->get(CreciRepositorio::class),
 			discord: $container->get(Discord::class),
 			cache: $container->get(Cache::class),
-			captcha: $container->get(Captcha::class)
+			captcha: $container->get(Captcha::class),
+			mensageria: $container->get(Mensageria::class)
 		);
 	}
 ]);

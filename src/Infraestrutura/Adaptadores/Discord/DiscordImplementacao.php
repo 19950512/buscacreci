@@ -18,9 +18,6 @@ readonly final class DiscordImplementacao implements Discord
     
     #[Override] public function enviarMensagem(CanalTexto $canalTexto, string $mensagem): void
     {
-        if($this->env->get('APP_DEBUG')){
-            return;
-        }
 
         $body = [
             'content' => mb_substr($mensagem, 0, 2000),

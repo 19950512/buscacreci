@@ -6,8 +6,6 @@ namespace App\Aplicacao\CasosDeUso;
 
 use Override;
 use Exception;
-use DomainException;
-use App\Dominio\ObjetoValor\Creci;
 use App\Aplicacao\Compartilhado\Cache;
 use App\Dominio\Entidades\CreciEntidade;
 use App\Dominio\ObjetoValor\Endereco\Estado;
@@ -17,9 +15,11 @@ use App\Aplicacao\Compartilhado\Captcha\Captcha;
 use App\Aplicacao\Compartilhado\Discord\Discord;
 use App\Aplicacao\CasosDeUso\Enums\CreciImplementado;
 use App\Aplicacao\CasosDeUso\EntradaESaida\ErroDomain;
-use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaCreci;
+use App\Aplicacao\Compartilhado\Mensageria\Mensageria;
 use App\Aplicacao\Compartilhado\Discord\Enums\CanalTexto;
+use App\Aplicacao\Compartilhado\Mensageria\Enumerados\Evento;
 use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesCreci;
+use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarNovaConsulta;
 use App\Dominio\Entidades\ConselhoNacionalCRECI\ConselhoNacionalCRECI;
 use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
@@ -33,11 +33,12 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 	public function __construct(
 		private CreciRepositorio $creciRepositorio,
 		private Discord $discord,
+		private Mensageria $mensageria,
 		private Cache $cache,
 		private Captcha $captcha,
 	) {}
 
-	#[Override] public function consultarCreci(string $creci): SaidaCreci | ErroDomain
+	#[Override] public function consultarCreci(string $creci): IdentificacaoUnica | ErroDomain
 	{
 
 		$creci = mb_strtoupper($creci);
@@ -89,11 +90,46 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 
 		$numeroCreciMontado = "CRECI/{$estadoEntity->getUF()} {$numeroInscricao}-{$tipoCreci}";
 
-		if($this->creciRepositorio->creciJaFoiConsultadoAntes($numeroCreciMontado)){
+		$uuidDaConsulta = new IdentificacaoUnica();
 
-			$creciData = $this->creciRepositorio->buscarInformacoesCreci($numeroCreciMontado);
+		$parametrosSalvarNovaConsulta = new EntradaSalvarNovaConsulta(
+			codigoSolicitacao: $uuidDaConsulta->get(),
+			creci: $numeroCreciMontado,
+			momento: date('Y-m-d H:i:s'),
+			situacao: 'AGUARDANDO SER PROCESSADO',
+		);
 
-			$saidaCreci = new SaidaCreci(
+		$this->creciRepositorio->salvarNovaConsulta($parametrosSalvarNovaConsulta);
+
+		$this->mensageria->publicar(
+			evento: Evento::ConsultaCreci,
+			message: json_encode([
+				'codigoSolicitacao' => $uuidDaConsulta->get(),
+				'creci' => $numeroCreciMontado,
+				'estado' => $estadoEntity->getUF(),
+				'numeroInscricao' => $numeroInscricao,
+				'tipoCreci' => $tipoCreci,
+			]),
+		);
+
+		$this->discord->enviarMensagem(
+			canalTexto: CanalTexto::CONSULTAS, 
+			mensagem: "Creci {$numeroCreciMontado} foi enviado para consulta.\nUUID da consulta: {$uuidDaConsulta->get()}\nAguarde a resposta."
+		);
+
+		return $uuidDaConsulta;
+	}
+
+	#[Override] public function consultarCreciPlataforma(IdentificacaoUnica $codigoSolicitacao): void
+	{
+
+		$consultaInformacoes = $this->creciRepositorio->getConsultaByCodigoSolicitacao($codigoSolicitacao->get());
+
+		if($this->creciRepositorio->creciJaFoiConsultadoAntes($consultaInformacoes->creciCompleto)){
+
+			$creciData = $this->creciRepositorio->buscarInformacoesCreci($consultaInformacoes->creciCompleto);
+
+			/*$saidaCreci = new SaidaCreci(
 				creciID: $creciData->creciCodigo,
 				creciCompleto: $creciData->creciCompleto,
 				creciEstado: $creciData->creciCompleto,
@@ -104,68 +140,98 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 				estado: $creciData->estado,
 				numeroDocumento: $creciData->numeroDocumento,
 				data: $creciData->data,
-			);
+			); */
 
-			$this->discord->enviarMensagem(
-				canalTexto: CanalTexto::CONSULTAS, 
-				mensagem: "Creci {$numeroCreciMontado} já foi consultado antes e está em cache.\nResposta:\n```json\n".json_encode($saidaCreci, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."```"
+			$this->creciRepositorio->atualizarConsultaCodigoSolicitacao(
+				codigoSolicitacao: $codigoSolicitacao->get(),
+				situacao: 'FINALIZADO',
+				momento: date('Y-m-d H:i:s'),
+				creciCodigo: $creciData->creciCodigo,
+				mensagemSucesso: 'Creci já foi consultado anteriormente.',
 			);
-
-			return $saidaCreci;
 		}
 
-		$resposta = $this->consultarCreciNaPlataforma(
-			estadoEntity: $estadoEntity,
-			numeroInscricao: $numeroInscricao,
-			tipoCreci: $tipoCreci
-		);
-		
-		$paramsBuildCreciEntidade = new SaidaInformacoesCreci(
-			creciCodigo: (new IdentificacaoUnica())->get(),
-			creciCompleto: "CRECI/{$estadoEntity->getUF()} {$numeroInscricao}-{$tipoCreci}",
-			creciEstado: $resposta->estado,
-			nomeCompleto: $resposta->nomeCompleto,
-			atualizadoEm: date('Y-m-d H:i:s'),
-			situacao: $resposta->situacao,
-			cidade: $resposta->cidade,
-			estado: $resposta->estado,
-			numeroDocumento: $resposta->numeroDocumento,
-			data: $resposta->data,
- 		);
-		$creciEntity = CreciEntidade::build($paramsBuildCreciEntidade);
 
-		$parametrosSalvarCreciConsultado = new EntradaSalvarCreciConsultado(
-			codigo: $creciEntity->codigo->get(),
-			creci: $creciEntity->creci->get(),
-			momento: $creciEntity->atualizadoEm->format('Y-m-d H:i:s'),
-			nomeCompleto: $creciEntity->nomeCompleto->get(),
-			cidade: $creciEntity->cidade->get(),
-			estado: $creciEntity->estado->get(),
-			situacao: $creciEntity->situacao->get() ? 'Ativo' : 'Inativo',
-			numeroDocumento: $creciEntity->numeroDocumento->get(),
-		);
+		$estadosDoBrasil = Estado::getEstados();
+		$estadoEntity = $this->encontrarEstadoPorCreci($estadosDoBrasil, $consultaInformacoes->creciCompleto);
 
-		$this->creciRepositorio->salvarCreciConsultado($parametrosSalvarCreciConsultado);
+		if($estadoEntity->getUF() == 'NN'){
+			$mensagem = 'Informe o estado no Creci. Exemplo: RS12345F';
 
-		$saidaCreci = new SaidaCreci(
-			creciID: $creciEntity->codigo->get(),
-			creciCompleto: $creciEntity->creci->get(),
-			creciEstado: $creciEntity->estado->get(),
-			nomeCompleto: $creciEntity->nomeCompleto->get(),
-			atualizadoEm: $creciEntity->atualizadoEm->format('Y-m-d H:i:s'),
-			situacao: $creciEntity->situacao->get() ? 'Ativo' : 'Inativo',
-			cidade: $creciEntity->cidade->get(),
-			estado: $creciEntity->estado->get(),
-			numeroDocumento: $creciEntity->numeroDocumento->get(),
-			data: $creciEntity->atualizadoEm->format('d/m/Y').' às '.$creciEntity->atualizadoEm->format('H:i'),
-		);
+			$this->creciRepositorio->atualizarConsultaCodigoSolicitacao(
+				codigoSolicitacao: $codigoSolicitacao->get(),
+				situacao: 'FINALIZADO',
+				momento: date('Y-m-d H:i:s'),
+				creciCodigo: $creciData->creciCodigo,
+				mensagemErro: $mensagem,
+			);
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTA_CRECIC, 
+				mensagem: $mensagem
+			);
+			return;
+		}
 
-		$this->discord->enviarMensagem(
-			canalTexto: CanalTexto::CONSULTAS, 
-			mensagem: "Creci {$numeroCreciMontado} foi consultado e salvo no banco de dados.\nResposta:\n```json\n".json_encode($saidaCreci, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."```"
-		);
+		$numeroInscricao = preg_replace('/[^0-9]/', '', $consultaInformacoes->creciCompleto);
+		$tipoCreci = str_contains($consultaInformacoes->creciCompleto, 'J') ? 'J' : 'F';
 
-		return $saidaCreci;
+		try {
+
+			$resposta = $this->consultarCreciNaPlataforma(
+				estadoEntity: $estadoEntity,
+				numeroInscricao: $numeroInscricao,
+				tipoCreci: $tipoCreci
+			);
+			
+			$paramsBuildCreciEntidade = new SaidaInformacoesCreci(
+				creciCodigo: (new IdentificacaoUnica())->get(),
+				creciCompleto: "CRECI/{$estadoEntity->getUF()} {$numeroInscricao}-{$tipoCreci}",
+				creciEstado: $resposta->estado,
+				nomeCompleto: $resposta->nomeCompleto,
+				atualizadoEm: date('Y-m-d H:i:s'),
+				situacao: $resposta->situacao,
+				cidade: $resposta->cidade,
+				estado: $resposta->estado,
+				numeroDocumento: $resposta->numeroDocumento,
+				data: $resposta->data,
+			);
+			$creciEntity = CreciEntidade::build($paramsBuildCreciEntidade);
+
+			$parametrosSalvarCreciConsultado = new EntradaSalvarCreciConsultado(
+				codigo: $creciEntity->codigo->get(),
+				creci: $creciEntity->creci->get(),
+				momento: $creciEntity->atualizadoEm->format('Y-m-d H:i:s'),
+				nomeCompleto: $creciEntity->nomeCompleto->get(),
+				cidade: $creciEntity->cidade->get(),
+				estado: $creciEntity->estado->get(),
+				situacao: $creciEntity->situacao->get() ? 'Ativo' : 'Inativo',
+				numeroDocumento: $creciEntity->numeroDocumento->get(),
+			);
+
+			$this->creciRepositorio->salvarCreciConsultado($parametrosSalvarCreciConsultado);
+
+			$this->creciRepositorio->atualizarConsultaCodigoSolicitacao(
+				codigoSolicitacao: $codigoSolicitacao->get(),
+				creciCodigo: $creciEntity->codigo->get(),
+				situacao: 'FINALIZADO',
+				momento: date('Y-m-d H:i:s'),
+				mensagemSucesso: 'Creci consultado com sucesso.',
+			);
+
+		}catch (Exception $e){
+
+			$this->creciRepositorio->atualizarConsultaCodigoSolicitacao(
+				codigoSolicitacao: $codigoSolicitacao->get(),
+				situacao: 'FINALIZADO',
+				momento: date('Y-m-d H:i:s'),
+				creciCodigo: '',
+				mensagemErro: $e->getMessage(),
+			);
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTA_CRECIC, 
+				mensagem: $e->getMessage()
+			);
+		}
 	}
 
 	private function consultarCreciNaPlataforma(Estado $estadoEntity, string $numeroInscricao, string $tipoCreci): SaidaConsultarCreciPlataforma

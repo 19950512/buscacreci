@@ -44,6 +44,31 @@ services:
     networks:
       - buscacreci_network
 
+  worker-email:
+    build: ./docker/php-fpm # Use o Dockerfile para construir a imagem
+    command: php src/Infraestrutura/Workers/Email/index.php # Comando para iniciar o worker
+    volumes:
+      - './:/application' # Mapeie o código-fonte para o contêiner
+    depends_on:
+      - laucher-queue
+      - rabbitmq-master # Certifique-se de que o RabbitMQ esteja disponível antes de iniciar o worker
+    deploy:
+      replicas: 3 # Número inicial de réplicas
+    networks:
+      - buscacreci_network
+
+  worker-consulta-creci:
+    build: ./docker/php-fpm # Use o Dockerfile para construir a imagem
+    command: php src/Infraestrutura/Workers/ConsultaCreci/index.php # Comando para iniciar o worker
+    volumes:
+      - './:/application' # Mapeie o código-fonte para o contêiner
+    depends_on:
+      - laucher-queue
+      - rabbitmq-master # Certifique-se de que o RabbitMQ esteja disponível antes de iniciar o worker
+    deploy:
+      replicas: 3 # Número inicial de réplicas
+    networks:
+      - buscacreci_network
 
   php-fpm:
     build: ./docker/php-fpm

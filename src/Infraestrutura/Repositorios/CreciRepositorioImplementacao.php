@@ -6,15 +6,96 @@ namespace App\Infraestrutura\Repositorios;
 
 use PDO;
 use Override;
+use Exception;
 use App\Dominio\Repositorios\CreciRepositorio;
-use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesCreci;
+use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarNovaConsulta;
+use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesDaConsulta;
+use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 
 readonly class CreciRepositorioImplementacao implements CreciRepositorio
 {
 	public function __construct(
 		private PDO $conexao
 	){}
+
+	#[Override] public function atualizarConsultaCodigoSolicitacao(string $codigoSolicitacao, string $situacao, string $momento, string $creciCodigo, string $mensagemSucesso = '', string $mensagemErro = ''): void
+	{
+		$consulta = $this->conexao->prepare('UPDATE consultas_creci SET
+			codigo_solicitacao = :codigo_solicitacao,
+			mensagem_sucesso = :mensagem_sucesso,
+			mensagem_erro = :mensagem_erro,
+			creci_id = :creci_id,
+			situacao = :situacao,
+			data_finalizacao = :data_finalizacao
+			WHERE codigo_solicitacao = :codigo_solicitacao');
+		$consulta->execute([
+			':codigo_solicitacao' => $codigoSolicitacao,
+			':situacao' => $situacao,
+			':mensagem_sucesso' => $mensagemSucesso,
+			':mensagem_erro' => $mensagemErro,
+			':creci_id' => $creciCodigo,
+			':data_finalizacao' => $momento,
+		]);
+	}
+
+
+	#[Override] public function getConsultaByCodigoSolicitacao(string $codigoSolicitacao): SaidaInformacoesDaConsulta
+	{
+		$consulta = $this->conexao->prepare('SELECT
+				codigo_solicitacao,
+				creci
+			FROM consultas_creci WHERE codigo_solicitacao = :codigo_solicitacao');
+		$consulta->execute([
+			':codigo_solicitacao' => $codigoSolicitacao
+		]);
+		$consulta = $consulta->fetch(PDO::FETCH_ASSOC);
+
+		if(!isset($consulta['codigo_solicitacao']) OR empty($consulta['codigo_solicitacao'])){
+			throw new Exception('Não encontramos nenhuma consulta com o código de solicitação informado.');
+		}
+
+		return new SaidaInformacoesDaConsulta(
+			codigoSolicitacao: $consulta['codigo_solicitacao'],
+			creciCompleto: $consulta['creci'],
+		);
+	}
+
+
+	#[Override] public function salvarNovaConsulta(EntradaSalvarNovaConsulta $parametros): void
+	{
+		$consulta = $this->conexao->prepare('INSERT INTO consultas_creci (
+			creci,
+			usuario_codigo,
+			codigo_solicitacao,
+			data_cadastro,
+			data_finalizacao,
+			situacao,
+			mensagem_erro,
+			mensagem_sucesso
+		) VALUES (
+			:creci,
+			:usuario_codigo,
+			:codigo_solicitacao,
+			:data_cadastro,
+			:data_finalizacao,
+			:situacao,
+			:mensagem_erro,
+			:mensagem_sucesso
+		)');
+		$consulta->execute([
+			':creci' => $parametros->creci,
+			':usuario_codigo' => null,
+			':codigo_solicitacao' => $parametros->codigoSolicitacao,
+			':data_cadastro' => $parametros->momento,
+			':data_finalizacao' => null,
+			':situacao' => $parametros->situacao,
+			':mensagem_erro' => null,
+			':mensagem_sucesso' => null
+		]);
+
+	}
+
 
 	#[Override] public function creciJaFoiConsultadoAntes(string $creci): bool
 	{
