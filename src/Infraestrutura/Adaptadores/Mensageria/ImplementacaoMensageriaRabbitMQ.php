@@ -51,6 +51,8 @@ readonly final class ImplementacaoMensageriaRabbitMQ implements Mensageria
             } catch (Exception $e) {
                 //echo "Erro desconhecido: " . $e->getMessage() . "\n";
             }
+
+            sleep($retry_delay_seconds);
             
         }while(++$attempts < $max_retry_connections);
 
