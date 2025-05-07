@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Dominio\Repositorios\EntradaESaida;
+namespace App\Aplicacao\CasosDeUso\EntradaESaida;
 
-final readonly class SaidaInformacoesDaConsulta
+final readonly class SaidaCodigoSolicitacao
 {
 	public function __construct(
 		public string $codigoSolicitacao,
@@ -12,5 +12,5 @@ final readonly class SaidaInformacoesDaConsulta
 		public string $mensagem,
 		public string $creciID,
 		public string $creciCompleto,
-	) {}
+	){}
 }

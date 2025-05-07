@@ -15,10 +15,12 @@ use App\Aplicacao\Compartilhado\Captcha\Captcha;
 use App\Aplicacao\Compartilhado\Discord\Discord;
 use App\Aplicacao\CasosDeUso\Enums\CreciImplementado;
 use App\Aplicacao\CasosDeUso\EntradaESaida\ErroDomain;
+use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaCreci;
 use App\Aplicacao\Compartilhado\Mensageria\Mensageria;
 use App\Aplicacao\Compartilhado\Discord\Enums\CanalTexto;
 use App\Aplicacao\Compartilhado\Mensageria\Enumerados\Evento;
 use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesCreci;
+use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaCodigoSolicitacao;
 use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarNovaConsulta;
 use App\Dominio\Entidades\ConselhoNacionalCRECI\ConselhoNacionalCRECI;
 use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
@@ -36,7 +38,71 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 		private Mensageria $mensageria,
 		private Cache $cache,
 		private Captcha $captcha,
-	) {}
+	){}
+
+	#[Override] public function consultarCreciCodigo(string $codigoCreci): SaidaCreci | ErroDomain
+	{
+
+		try {
+
+			$codigoCreci = new IdentificacaoUnica($codigoCreci);
+
+		}catch (Exception $e){
+			return new ErroDomain(
+				mensagem: 'Código de solicitação inválido.',
+				codigo: 422
+			);
+		}
+
+		$creciData = $this->creciRepositorio->buscarInformacoesCreci($codigoCreci->get());
+		if(!isset($creciData->creciCodigo) OR empty($creciData->creciCodigo)){
+			return new ErroDomain(
+				mensagem: 'Código de solicitação inválido.',
+				codigo: 422
+			);
+		}
+
+		$saidaCreci = new SaidaCreci(
+			creciID: $creciData->creciCodigo,
+			creciCompleto: $creciData->creciCompleto,
+			creciEstado: $creciData->creciCompleto,
+			nomeCompleto: $creciData->nomeCompleto,
+			atualizadoEm: $creciData->atualizadoEm,
+			situacao: $creciData->situacao,
+			cidade: $creciData->cidade,
+			estado: $creciData->estado,
+			numeroDocumento: $creciData->numeroDocumento,
+			data: $creciData->data,
+		);
+
+		return $saidaCreci;
+	}
+
+
+	#[Override] public function consultarCodigoSolicitacao(string $codigoSolicitacao): SaidaCodigoSolicitacao | ErroDomain
+	{
+
+		try {
+
+			$codigoSolicitacao = new IdentificacaoUnica($codigoSolicitacao);
+
+		}catch (Exception $e){
+			return new ErroDomain(
+				mensagem: 'Código de solicitação inválido.',
+				codigo: 422
+			);
+		}
+
+		$consultaInformacoes = $this->creciRepositorio->getConsultaByCodigoSolicitacao($codigoSolicitacao->get());
+
+		return new SaidaCodigoSolicitacao(
+			codigoSolicitacao: $consultaInformacoes->codigoSolicitacao,
+			status: $consultaInformacoes->status,
+			mensagem: $consultaInformacoes->mensagem,
+			creciID: $consultaInformacoes->creciID,
+			creciCompleto: $consultaInformacoes->creciCompleto,
+		);
+	}
 
 	#[Override] public function consultarCreci(string $creci): IdentificacaoUnica | ErroDomain
 	{

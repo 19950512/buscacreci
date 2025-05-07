@@ -44,6 +44,10 @@ readonly class CreciRepositorioImplementacao implements CreciRepositorio
 	{
 		$consulta = $this->conexao->prepare('SELECT
 				codigo_solicitacao,
+				creci_id,
+				situacao,
+				mensagem_erro,
+				mensagem_sucesso,
 				creci
 			FROM consultas_creci WHERE codigo_solicitacao = :codigo_solicitacao');
 		$consulta->execute([
@@ -55,9 +59,20 @@ readonly class CreciRepositorioImplementacao implements CreciRepositorio
 			throw new Exception('Não encontramos nenhuma consulta com o código de solicitação informado.');
 		}
 
+		$mensagem = 'Desconhecido';
+		if(isset($consulta['mensagem_erro']) and !empty($consulta['mensagem_erro'])){
+			$mensagem = $consulta['mensagem_erro'];
+		}
+		if(isset($consulta['mensagem_sucesso']) and !empty($consulta['mensagem_sucesso'])){
+			$mensagem = $consulta['mensagem_sucesso'];
+		}
+
 		return new SaidaInformacoesDaConsulta(
 			codigoSolicitacao: $consulta['codigo_solicitacao'],
 			creciCompleto: $consulta['creci'],
+			creciID: $consulta['creci_id'],
+			status: $consulta['situacao'],
+			mensagem: $mensagem,
 		);
 	}
 
@@ -121,9 +136,9 @@ readonly class CreciRepositorioImplementacao implements CreciRepositorio
                 numero_documento,
                 atualizado_em,
                 situacao
-    		FROM creci WHERE creci_completo = :creci_completo');
+    		FROM creci WHERE creci_id = :creci_id');
 		$consulta->execute([
-			':creci_completo' => $creci
+			':creci_id' => $creci
 		]);
 		$creci = $consulta->fetch(PDO::FETCH_ASSOC);
 

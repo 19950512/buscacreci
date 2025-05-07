@@ -23,7 +23,7 @@ final class Router
         $controllerName = ucfirst(empty($controllerName) ? 'Index' : $controllerName);
 
         $action = ($uri[2] ?? 'Index');
-        $this->action = ucfirst(empty($action) ? 'Index' : $action);
+        $this->action = explode('?', ucfirst(empty($action) ? 'Index' : $action))[0];
 
         $controllerNameSpace = "App\Infraestrutura\APIs\\{$this->apiName}\Controladores\Erros\Erro404Controller";
 
