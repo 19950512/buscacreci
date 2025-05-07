@@ -129,12 +129,6 @@ class CreciSPPlataformaImplementacao implements PlataformaCreci
         $newDom->appendChild($newDom->importNode($mainDiv, true));
         $newXpath = new DOMXPath($newDom);
 
-        // Função auxiliar para extrair textos
-        function extractText($xpath, $query) {
-            $node = $xpath->query($query)->item(0);
-            return $node ? trim($node->nodeValue) : null;
-        }
-
         // Pegar a imagem de perfil dentro da div principal
         $imgTag = $newXpath->query("//img")->item(0);
         $fotoPerfil = $imgTag ? $imgTag->getAttribute('src') : null;
