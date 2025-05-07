@@ -193,7 +193,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 
 		$consultaInformacoes = $this->creciRepositorio->getConsultaByCodigoSolicitacao($codigoSolicitacao->get());
 
-		if($this->creciRepositorio->creciJaFoiConsultadoAntes($consultaInformacoes->creciID)){
+		if($this->creciRepositorio->creciJaFoiConsultadoAntes($consultaInformacoes->creciCompleto)){
 
 			$creciData = $this->creciRepositorio->buscarInformacoesCreci(
 				creciCompleto: $consultaInformacoes->creciCompleto,
@@ -206,6 +206,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 				creciCodigo: $creciData->creciCodigo,
 				mensagemSucesso: 'Creci já foi consultado anteriormente.',
 			);
+			return;
 		}
 
 		$estadosDoBrasil = Estado::getEstados();
@@ -218,7 +219,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 				codigoSolicitacao: $codigoSolicitacao->get(),
 				situacao: 'FINALIZADO',
 				momento: date('Y-m-d H:i:s'),
-				creciCodigo: $creciData->creciCodigo,
+				creciCodigo: $consultaInformacoes->creciID,
 				mensagemErro: $mensagem,
 			);
 			$this->discord->enviarMensagem(
