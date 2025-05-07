@@ -70,7 +70,7 @@ readonly class CreciRepositorioImplementacao implements CreciRepositorio
 		return new SaidaInformacoesDaConsulta(
 			codigoSolicitacao: $consulta['codigo_solicitacao'],
 			creciCompleto: $consulta['creci'],
-			creciID: $consulta['creci_id'],
+			creciID: (string) ($consulta['creci_id'] ?? ''),
 			status: $consulta['situacao'],
 			mensagem: $mensagem,
 		);
