@@ -195,22 +195,9 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 
 			$creciData = $this->creciRepositorio->buscarInformacoesCreci($consultaInformacoes->creciCompleto);
 
-			/*$saidaCreci = new SaidaCreci(
-				creciID: $creciData->creciCodigo,
-				creciCompleto: $creciData->creciCompleto,
-				creciEstado: $creciData->creciCompleto,
-				nomeCompleto: $creciData->nomeCompleto,
-				atualizadoEm: $creciData->atualizadoEm,
-				situacao: $creciData->situacao,
-				cidade: $creciData->cidade,
-				estado: $creciData->estado,
-				numeroDocumento: $creciData->numeroDocumento,
-				data: $creciData->data,
-			); */
-
 			$this->creciRepositorio->atualizarConsultaCodigoSolicitacao(
 				codigoSolicitacao: $codigoSolicitacao->get(),
-				situacao: 'FINALIZADO',
+				situacao: !empty($creciData->creciCodigo) ? 'FINALIZADO' : 'AGUARDANDO SER PROCESSADO',
 				momento: date('Y-m-d H:i:s'),
 				creciCodigo: $creciData->creciCodigo,
 				mensagemSucesso: 'Creci já foi consultado anteriormente.',
