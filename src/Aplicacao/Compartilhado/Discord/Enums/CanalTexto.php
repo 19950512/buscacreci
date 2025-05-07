@@ -10,7 +10,7 @@ enum CanalTexto: string {
     case WORKERS = 'workers';
     case EXCEPTIONS = 'exceptions';
 
-    case CONSULTA_CRECIC = 'consulta-creci';
+    case CONSULTA_CRECI = 'consulta-creci';
     case EMAIL = 'email';
 
     public function obterWebhook(): string
@@ -28,7 +28,7 @@ enum CanalTexto: string {
             self::DEPLOY => $webhooks[self::DEPLOY->name],
             self::WORKERS => $webhooks[self::WORKERS->name],
             self::EXCEPTIONS => $webhooks[self::EXCEPTIONS->name],
-            self::CONSULTA_CRECIC => $webhooks[self::CONSULTA_CRECIC->name],
+            self::CONSULTA_CRECI => $webhooks[self::CONSULTA_CRECI->name],
             self::EMAIL => $webhooks[self::EMAIL->name],
         };
     }

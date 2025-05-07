@@ -232,7 +232,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 				mensagemErro: $mensagem,
 			);
 			$this->discord->enviarMensagem(
-				canalTexto: CanalTexto::CONSULTA_CRECIC, 
+				canalTexto: CanalTexto::CONSULTA_CRECI, 
 				mensagem: $mensagem
 			);
 			return;
@@ -294,7 +294,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 				mensagemErro: $e->getMessage(),
 			);
 			$this->discord->enviarMensagem(
-				canalTexto: CanalTexto::CONSULTA_CRECIC, 
+				canalTexto: CanalTexto::CONSULTA_CRECI, 
 				mensagem: $e->getMessage()
 			);
 		}
