@@ -124,9 +124,24 @@ readonly class CreciRepositorioImplementacao implements CreciRepositorio
 		return isset($creci['nome_completo']) and !empty($creci['nome_completo']);
 	}
 
-	#[Override] public function buscarInformacoesCreci(string $creci): SaidaInformacoesCreci
+	#[Override] public function buscarInformacoesCreci(string $creciCodigo = '', string $creciCompleto = ''): SaidaInformacoesCreci
 	{
-		$consulta = $this->conexao->prepare('SELECT
+
+		$where = '';
+		$creci = '';
+		if(!empty($creciCodigo)){
+			$where = 'WHERE creci_id = :creci';
+			$creci = $creciCodigo;
+		}
+		if(!empty($creciCompleto)){
+			$where = 'WHERE creci_completo = :creci';
+			$creci = $creciCompleto;
+		}
+		if(empty($creciCodigo) and empty($creciCompleto)){
+			throw new Exception('Informe o CRECI completo ou o código do CRECI.');
+		}
+
+		$consulta = $this->conexao->prepare("SELECT
                 creci_completo,
                 creci_estado,
                 creci_id,
@@ -136,9 +151,9 @@ readonly class CreciRepositorioImplementacao implements CreciRepositorio
                 numero_documento,
                 atualizado_em,
                 situacao
-    		FROM creci WHERE creci_id = :creci_id');
+    		FROM creci $where");
 		$consulta->execute([
-			':creci_id' => $creci
+			':creci' => $creci
 		]);
 		$creci = $consulta->fetch(PDO::FETCH_ASSOC);
 

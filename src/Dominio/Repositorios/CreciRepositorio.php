@@ -12,7 +12,7 @@ use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 interface CreciRepositorio
 {
 	public function creciJaFoiConsultadoAntes(string $creci): bool;
-	public function buscarInformacoesCreci(string $creci): SaidaInformacoesCreci;
+	public function buscarInformacoesCreci(string $creciCodigo = '', string $creciCompleto = ''): SaidaInformacoesCreci;
 	public function salvarCreciConsultado(EntradaSalvarCreciConsultado $parametros): void;
 	public function salvarNovaConsulta(EntradaSalvarNovaConsulta $parametros): void;
 	public function getConsultaByCodigoSolicitacao(string $codigoSolicitacao): SaidaInformacoesDaConsulta;
