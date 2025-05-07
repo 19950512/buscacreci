@@ -143,16 +143,16 @@ readonly class CreciRepositorioImplementacao implements CreciRepositorio
 		$creci = $consulta->fetch(PDO::FETCH_ASSOC);
 
 		return new SaidaInformacoesCreci(
-			creciCodigo: $creci['creci_id'],
-			creciCompleto: $creci['creci_completo'],
-			creciEstado: $creci['creci_estado'],
-			nomeCompleto: $creci['nome_completo'],
-			atualizadoEm: $creci['atualizado_em'],
-			situacao: $creci['situacao'],
-			cidade: $creci['cidade'],
-			estado: $creci['estado'],
-			numeroDocumento: $creci['numero_documento'],
-			data: $creci['atualizado_em'],
+			creciCodigo: (string) ($creci['creci_id'] ?? ''),
+			creciCompleto: (string) ($creci['creci_completo'] ?? ''),
+			creciEstado: (string) ($creci['creci_estado'] ?? ''),
+			nomeCompleto: (string) ($creci['nome_completo'] ?? ''),
+			atualizadoEm: (string) ($creci['atualizado_em'] ?? ''),
+			situacao: (string) ($creci['situacao'] ?? ''),
+			cidade: (string) ($creci['cidade'] ?? ''),
+			estado: (string) ($creci['estado'] ?? ''),
+			numeroDocumento: (string) ($creci['numero_documento'] ?? ''),
+			data: (string) ($creci['atualizado_em'] ?? ''),
 		);
 	}
 
