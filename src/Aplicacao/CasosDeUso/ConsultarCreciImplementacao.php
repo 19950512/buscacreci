@@ -208,7 +208,6 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			);
 		}
 
-
 		$estadosDoBrasil = Estado::getEstados();
 		$estadoEntity = $this->encontrarEstadoPorCreci($estadosDoBrasil, $consultaInformacoes->creciCompleto);
 
@@ -231,6 +230,11 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 
 		$numeroInscricao = preg_replace('/[^0-9]/', '', $consultaInformacoes->creciCompleto);
 		$tipoCreci = str_contains($consultaInformacoes->creciCompleto, 'J') ? 'J' : 'F';
+
+		$this->creciRepositorio->atualizarStatusConsulta(
+			codigoSolicitacao: $codigoSolicitacao->get(),
+			situacao: 'PROCESSANDO',
+		);
 
 		try {
 
@@ -349,7 +353,8 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 		}
 	}
 
-	private function encontrarEstadoPorCreci(array $estadosDoBrasil, string $creci): Estado{
+	private function encontrarEstadoPorCreci(array $estadosDoBrasil, string $creci): Estado
+	{
 		$estadoEntity = new Estado('NN');
 		foreach($estadosDoBrasil as $estado => $nomeCompletoEstado){
 			$creciTemp = strtoupper($creci);

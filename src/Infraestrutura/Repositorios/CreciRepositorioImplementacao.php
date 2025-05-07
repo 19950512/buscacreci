@@ -19,6 +19,18 @@ readonly class CreciRepositorioImplementacao implements CreciRepositorio
 		private PDO $conexao
 	){}
 
+	#[Override] public function atualizarStatusConsulta(string $codigoSolicitacao, string $situacao): void
+	{
+		$consulta = $this->conexao->prepare('UPDATE consultas_creci SET
+			situacao = :situacao
+			WHERE codigo_solicitacao = :codigo_solicitacao');
+		$consulta->execute([
+			':codigo_solicitacao' => $codigoSolicitacao,
+			':situacao' => $situacao,
+		]);
+	}
+
+
 	#[Override] public function atualizarConsultaCodigoSolicitacao(string $codigoSolicitacao, string $situacao, string $momento, string $creciCodigo, string $mensagemSucesso = '', string $mensagemErro = ''): void
 	{
 		$consulta = $this->conexao->prepare('UPDATE consultas_creci SET

@@ -15,6 +15,7 @@ interface CreciRepositorio
 	public function buscarInformacoesCreci(string $creciCodigo = '', string $creciCompleto = ''): SaidaInformacoesCreci;
 	public function salvarCreciConsultado(EntradaSalvarCreciConsultado $parametros): void;
 	public function salvarNovaConsulta(EntradaSalvarNovaConsulta $parametros): void;
+	public function atualizarStatusConsulta(string $codigoSolicitacao, string $situacao): void;
 	public function getConsultaByCodigoSolicitacao(string $codigoSolicitacao): SaidaInformacoesDaConsulta;
 	public function atualizarConsultaCodigoSolicitacao(string $codigoSolicitacao, string $situacao, string $momento, string $creciCodigo, string $mensagemSucesso = '', string $mensagemErro = ''): void;
 }
