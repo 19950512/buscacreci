@@ -124,12 +124,12 @@ readonly class CreciRepositorioImplementacao implements CreciRepositorio
 	}
 
 
-	#[Override] public function creciJaFoiConsultadoAntes(string $creci): bool
+	#[Override] public function creciJaFoiConsultadoAntes(string $creciCodigo): bool
 	{
 
-		$consulta = $this->conexao->prepare('SELECT nome_completo FROM creci WHERE creci_completo = :creci_completo');
+		$consulta = $this->conexao->prepare('SELECT nome_completo FROM creci WHERE creci_id = :creci_id');
 		$consulta->execute([
-			':creci_completo' => $creci
+			':creci_id' => $creciCodigo
 		]);
 		$creci = $consulta->fetch(PDO::FETCH_ASSOC);
 

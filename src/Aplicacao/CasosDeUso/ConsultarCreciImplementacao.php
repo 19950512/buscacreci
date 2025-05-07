@@ -193,7 +193,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 
 		$consultaInformacoes = $this->creciRepositorio->getConsultaByCodigoSolicitacao($codigoSolicitacao->get());
 
-		if($this->creciRepositorio->creciJaFoiConsultadoAntes($consultaInformacoes->creciCompleto)){
+		if($this->creciRepositorio->creciJaFoiConsultadoAntes($consultaInformacoes->creciID)){
 
 			$creciData = $this->creciRepositorio->buscarInformacoesCreci(
 				creciCompleto: $consultaInformacoes->creciCompleto,
