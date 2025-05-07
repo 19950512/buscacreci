@@ -54,7 +54,9 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			);
 		}
 
-		$creciData = $this->creciRepositorio->buscarInformacoesCreci($codigoCreci->get());
+		$creciData = $this->creciRepositorio->buscarInformacoesCreci(
+			creciCodigo: $codigoCreci->get(),
+		);
 		if(!isset($creciData->creciCodigo) OR empty($creciData->creciCodigo)){
 			return new ErroDomain(
 				mensagem: 'Código de solicitação inválido.',
@@ -193,7 +195,9 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 
 		if($this->creciRepositorio->creciJaFoiConsultadoAntes($consultaInformacoes->creciCompleto)){
 
-			$creciData = $this->creciRepositorio->buscarInformacoesCreci($consultaInformacoes->creciCompleto);
+			$creciData = $this->creciRepositorio->buscarInformacoesCreci(
+				creciCompleto: $consultaInformacoes->creciCompleto,
+			);
 
 			$this->creciRepositorio->atualizarConsultaCodigoSolicitacao(
 				codigoSolicitacao: $codigoSolicitacao->get(),
