@@ -228,6 +228,23 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			);
 			return;
 		}
+		
+		if($estadoEntity->getUF() == 'SP'){
+
+			$mensagem = 'O estado de São Paulo está com problemas de consulta. Tente novamente mais tarde.';
+
+			$this->creciRepositorio->atualizarConsultaCodigoSolicitacao(
+				codigoSolicitacao: $codigoSolicitacao->get(),
+				situacao: 'FINALIZADO',
+				momento: date('Y-m-d H:i:s'),
+				creciCodigo: $consultaInformacoes->creciID,
+				mensagemErro: $mensagem,
+			);
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTA_CRECI, 
+				mensagem: $mensagem
+			);
+		}
 
 		$numeroInscricao = preg_replace('/[^0-9]/', '', $consultaInformacoes->creciCompleto);
 		$tipoCreci = str_contains($consultaInformacoes->creciCompleto, 'J') ? 'J' : 'F';
