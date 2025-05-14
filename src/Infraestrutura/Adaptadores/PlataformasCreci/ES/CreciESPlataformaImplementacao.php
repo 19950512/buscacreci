@@ -4,29 +4,45 @@ declare(strict_types=1);
 
 namespace App\Infraestrutura\Adaptadores\PlataformasCreci\ES;
 
-use Exception;
 use Override;
-use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
-use App\Aplicacao\CasosDeUso\PlataformaCreci;
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\FileCookieJar;
 use Symfony\Component\DomCrawler\Crawler;
+use App\Aplicacao\CasosDeUso\PlataformaCreci;
+use App\Aplicacao\Compartilhado\Discord\Discord;
+use App\Aplicacao\Compartilhado\Discord\Enums\CanalTexto;
+use App\Infraestrutura\Adaptadores\PlataformasCreci\Robots;
+use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
 
 final readonly class CreciESPlataformaImplementacao implements PlataformaCreci
 {
 
 	private Client $clientHttp;
 
-	public function __construct(){
+	private string $baseURL;
+
+	public function __construct(
+		private Discord $discord
+	){
+		$this->baseURL = 'https://www.creci-es.gov.br';
 
 		$this->clientHttp = new Client([
-		    'base_uri' => 'https://area-restrita.crecies.gov.br',
+		    'base_uri' => $this->baseURL,
 		    'timeout'  => 2.0,
 		]);
 	}
 
 	#[Override] public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
 	{
+
+        if(!Robots::isAllowedByRobotsTxt($this->baseURL. '/resultado_de_pesquisa_por_creci')){
+            $this->discord->enviarMensagem(
+                canalTexto: CanalTexto::WORKERS,
+                mensagem: 'Acesso negado pelo robots.txt - URL: '.$this->baseURL. '/resultado_de_pesquisa_por_creci',
+            );
+            throw new Exception('Acesso negado pelo robots.txt');
+        }
 
 		/*
 		 * O CRECI ES trabalha com CSRF-Token, então é necessário fazer uma requisição GET para obter o token

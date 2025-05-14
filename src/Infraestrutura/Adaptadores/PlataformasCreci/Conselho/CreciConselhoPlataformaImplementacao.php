@@ -4,22 +4,27 @@ declare(strict_types=1);
 
 namespace App\Infraestrutura\Adaptadores\PlataformasCreci\Conselho;
 
-use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
-use App\Aplicacao\CasosDeUso\PlataformaCreci;
-use GuzzleHttp\Client;
-use Exception;
 use Override;
+use Exception;
+use GuzzleHttp\Client;
+use App\Aplicacao\CasosDeUso\PlataformaCreci;
+use App\Aplicacao\Compartilhado\Discord\Discord;
+use App\Aplicacao\Compartilhado\Discord\Enums\CanalTexto;
+use App\Infraestrutura\Adaptadores\PlataformasCreci\Robots;
+use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
 
 class CreciConselhoPlataformaImplementacao implements PlataformaCreci
 {
     private Client $clientHttp;
+    private string $baseURL;
 
     public function __construct(
         private string $uf,
-    )
-    {
+        private Discord $discord
+    ){
+        $this->baseURL = 'https://www.creci'.mb_strtolower($this->uf).'.conselho.net.br';
         $this->clientHttp = new Client([
-            "base_uri" => "https://www.creci".mb_strtolower($this->uf).".conselho.net.br",
+            "base_uri" => $this->baseURL,
             "timeout" => 99
         ]);
     }
@@ -48,6 +53,15 @@ class CreciConselhoPlataformaImplementacao implements PlataformaCreci
 
     #[Override] public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
     {
+
+        if(!Robots::isAllowedByRobotsTxt($this->baseURL. '/form_pesquisa_cadastro_geral_site.php')){
+            $this->discord->enviarMensagem(
+                canalTexto: CanalTexto::WORKERS,
+                mensagem: 'Acesso negado pelo robots.txt - URL: '.$this->baseURL. '/form_pesquisa_cadastro_geral_site.php',
+            );
+            throw new Exception('Acesso negado pelo robots.txt');
+        }
+
         $creciConsultado = $this->consultarApiCreci('/form_pesquisa_cadastro_geral_site.php', ["inscricao" => $creci]);
         $creciResponse = json_decode($creciConsultado->getBody()->getContents(), true);
         if(empty($creciResponse['cadastros'])){

@@ -11,7 +11,10 @@ use DOMDocument;
 use GuzzleHttp\Cookie\CookieJar;
 use App\Aplicacao\CasosDeUso\PlataformaCreci;
 use App\Aplicacao\Compartilhado\Captcha\Captcha;
+use App\Aplicacao\Compartilhado\Discord\Discord;
+use App\Infraestrutura\Adaptadores\PlataformasCreci\Robots;
 use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
+use App\Aplicacao\Compartilhado\Discord\Enums\CanalTexto;
 
 class CreciSPPlataformaImplementacao implements PlataformaCreci
 {
@@ -20,7 +23,8 @@ class CreciSPPlataformaImplementacao implements PlataformaCreci
     private CookieJar $cookieJar;
 
 	public function __construct(
-        private Captcha $captcha
+        private Captcha $captcha,
+        private Discord $discord
     ){
 
 		$this->clientHttp = new \GuzzleHttp\Client([
@@ -37,6 +41,14 @@ class CreciSPPlataformaImplementacao implements PlataformaCreci
 
         $pageUrl = 'https://www.crecisp.gov.br/cidadao/buscaporcorretores';
 
+        if(!Robots::isAllowedByRobotsTxt($pageUrl)){
+            $this->discord->enviarMensagem(
+                canalTexto: CanalTexto::WORKERS,
+                mensagem: 'Acesso negado pelo robots.txt - URL: '.$pageUrl,
+            );
+            throw new Exception('Acesso negado pelo robots.txt');
+        }
+
         // 2. Acessa a página e captura o sitekey do reCAPTCHA
         $response = $this->clientHttp->get($pageUrl, ['cookies' => $this->cookieJar]);
         $html = (string) $response->getBody();
@@ -51,6 +63,14 @@ class CreciSPPlataformaImplementacao implements PlataformaCreci
 
         // 4. Submete o formulário com os dados do corretor
         $searchUrl = 'https://www.crecisp.gov.br/cidadao/buscaporcorretores';
+
+        if(!Robots::isAllowedByRobotsTxt($searchUrl)){
+            $this->discord->enviarMensagem(
+                canalTexto: CanalTexto::WORKERS,
+                mensagem: 'Acesso negado pelo robots.txt - URL: '.$searchUrl,
+            );
+            throw new Exception('Acesso negado pelo robots.txt');
+        }
 
         $response = $this->clientHttp->post($searchUrl, [
             'headers' => [
@@ -92,6 +112,14 @@ class CreciSPPlataformaImplementacao implements PlataformaCreci
 
         // 6. Acessa a página de detalhes
         $detalhesUrl = "https://www.crecisp.gov.br/cidadao/corretordetalhes?registerNumber={$registerNumber}";
+
+        if(!Robots::isAllowedByRobotsTxt($detalhesUrl)){
+            $this->discord->enviarMensagem(
+                canalTexto: CanalTexto::WORKERS,
+                mensagem: 'Acesso negado pelo robots.txt - URL: '.$detalhesUrl,
+            );
+            throw new Exception('Acesso negado pelo robots.txt');
+        }
 
         $response = $this->clientHttp->post($detalhesUrl, [
             'headers' => [
@@ -210,6 +238,14 @@ class CreciSPPlataformaImplementacao implements PlataformaCreci
     
         $siteKey = '6LdeSBITAAAAAMq-ckp15zFfmVs0ZXMNwnCPxkob';
         $detalhesUrl = 'https://www.crecisp.gov.br/cidadao/corretordetalhes?registerNumber=' . $creci;
+
+        if(!Robots::isAllowedByRobotsTxt($detalhesUrl)){
+            $this->discord->enviarMensagem(
+                canalTexto: CanalTexto::WORKERS,
+                mensagem: 'Acesso negado pelo robots.txt - URL: '.$detalhesUrl,
+            );
+            throw new Exception('Acesso negado pelo robots.txt');
+        }
         
         $captchaResponse = $this->captcha->resolver($siteKey, $detalhesUrl);
 
@@ -223,9 +259,19 @@ class CreciSPPlataformaImplementacao implements PlataformaCreci
             "Referer: $detalhesUrl",
             'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
         ];
+
+        $baseURL = "https://www.crecisp.gov.br/api/details/broker";
+
+        if(!Robots::isAllowedByRobotsTxt($baseURL)){
+            $this->discord->enviarMensagem(
+                canalTexto: CanalTexto::WORKERS,
+                mensagem: 'Acesso negado pelo robots.txt - URL: '.$baseURL,
+            );
+            throw new Exception('Acesso negado pelo robots.txt');
+        }
         
         curl_setopt_array($curl, [
-          CURLOPT_URL => "https://www.crecisp.gov.br/api/details/broker",
+          CURLOPT_URL => $baseURL,
           CURLOPT_RETURNTRANSFER => true,
           CURLOPT_ENCODING => "",
           CURLOPT_MAXREDIRS => 10,

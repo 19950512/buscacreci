@@ -6,19 +6,25 @@ namespace App\Infraestrutura\Adaptadores\PlataformasCreci\RS;
 
 use Override;
 use Exception;
-use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
-use App\Aplicacao\CasosDeUso\PlataformaCreci;
 use Symfony\Component\DomCrawler\Crawler;
+use App\Aplicacao\CasosDeUso\PlataformaCreci;
+use App\Aplicacao\Compartilhado\Discord\Discord;
+use App\Aplicacao\Compartilhado\Discord\Enums\CanalTexto;
+use App\Infraestrutura\Adaptadores\PlataformasCreci\Robots;
+use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
 
 class CreciRSPlataformaImplementacao implements PlataformaCreci
 {
 
 	private \GuzzleHttp\Client $clientHttp;
 
-	public function __construct(){
+	private string $baseURL = 'https://www.creci-rs.gov.br';
+	public function __construct(
+		private Discord $discord,
+	){
 
 		$this->clientHttp = new \GuzzleHttp\Client([
-		    'base_uri' => 'https://www.creci-rs.gov.br',
+		    'base_uri' => $this->baseURL,
 		    'timeout'  => 9999.0,
 			'origin' => 'www.creci-rs.gov.br'
 		]);
@@ -26,6 +32,14 @@ class CreciRSPlataformaImplementacao implements PlataformaCreci
 
 	#[Override] public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
 	{
+
+        if(!Robots::isAllowedByRobotsTxt($this->baseURL. '/siteNovo/pesquisaInscrito.php')){
+            $this->discord->enviarMensagem(
+                canalTexto: CanalTexto::WORKERS,
+                mensagem: 'Acesso negado pelo robots.txt - URL: '.$this->baseURL. '/siteNovo/pesquisaInscrito.php',
+            );
+            throw new Exception('Acesso negado pelo robots.txt');
+        }
 
 		// somente numeros
 		$numeroInscricao = preg_replace('/[^0-9]/', '', $creci);
