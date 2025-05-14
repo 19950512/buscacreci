@@ -33,6 +33,11 @@ class Captcha2CaptchaImplementation implements Captcha
         $response = file_get_contents('http://2captcha.com/in.php?' . http_build_query($request));
         $responseData = json_decode($response, true);
 
+        d('SiteKey: ' . $siteKey);
+        d('PageUrl: ' . $pageUrl);
+        d('Response: ' . $response);
+        d('ResponseData: ' . json_encode($responseData));
+
         if(isset($responseData['status']) and $responseData['status'] == 1) {
             // Captura o ID da solicitação para resolver o reCAPTCHA
             $captchaId = $responseData['request'];
@@ -43,6 +48,8 @@ class Captcha2CaptchaImplementation implements Captcha
 
                 // Verifica se o reCAPTCHA foi resolvido
                 $result = file_get_contents('http://2captcha.com/res.php?key=' . $apiKey . '&action=get&id=' . $captchaId . '&json=1');
+
+                d($result);
                 $resultData = json_decode($result, true);
 
                 if ($resultData['status'] == 1) {
