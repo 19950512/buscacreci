@@ -304,6 +304,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 		if($conselhoNacionalCRECI->estadoPossuiMembroAtivo($estadoEntity->getUF())){
 			$plataformaCreci = new CreciConselhoPlataformaImplementacao(
 				uf: $estadoEntity->getUF(),
+				discord: $this->discord,
 			);
 
 			return $plataformaCreci->consultarCreci(
@@ -324,10 +325,15 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 		}
 
 		$plataformaCreci = match ($creciImplementado) {
-			CreciImplementado::RS => new CreciRSPlataformaImplementacao(),
-			CreciImplementado::ES => new CreciESPlataformaImplementacao(),
+			CreciImplementado::RS => new CreciRSPlataformaImplementacao(
+				discord: $this->discord,
+			),
+			CreciImplementado::ES => new CreciESPlataformaImplementacao(
+				discord: $this->discord,
+			),
 			CreciImplementado::SP => new CreciSPPlataformaImplementacao(
 				captcha: $this->captcha,
+				discord: $this->discord,
 			),
 			default => throw new Exception("Ainda não implementamos o estado informado! {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})"),
 		};

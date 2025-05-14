@@ -39,29 +39,6 @@ class CreciSPPlataformaImplementacao implements PlataformaCreci
 	#[Override] public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
     {
 
-        $pageUrl = 'https://www.crecisp.gov.br/cidadao/buscaporcorretores';
-
-        if(!Robots::isAllowedByRobotsTxt($pageUrl)){
-            $this->discord->enviarMensagem(
-                canalTexto: CanalTexto::WORKERS,
-                mensagem: 'Acesso negado pelo robots.txt - URL: '.$pageUrl,
-            );
-            throw new Exception('Acesso negado pelo robots.txt');
-        }
-
-        // 2. Acessa a página e captura o sitekey do reCAPTCHA
-        $response = $this->clientHttp->get($pageUrl, ['cookies' => $this->cookieJar]);
-        $html = (string) $response->getBody();
-
-        preg_match('/data-sitekey="([^"]+)"/', $html, $matches);
-        $siteKey = $matches[1];
-        
-        // 3. Resolve o reCAPTCHA
-        $captchaResponse = $this->captcha->resolver($siteKey, $pageUrl);
-
-        $captchaResponse = $captchaResponse->get();
-
-        // 4. Submete o formulário com os dados do corretor
         $searchUrl = 'https://www.crecisp.gov.br/cidadao/buscaporcorretores';
 
         if(!Robots::isAllowedByRobotsTxt($searchUrl)){
@@ -72,12 +49,28 @@ class CreciSPPlataformaImplementacao implements PlataformaCreci
             throw new Exception('Acesso negado pelo robots.txt');
         }
 
+        // 2. Acessa a página e captura o sitekey do reCAPTCHA
+        $response = $this->clientHttp->get($searchUrl, ['cookies' => $this->cookieJar]);
+        $html = (string) $response->getBody();
+
+        preg_match('/data-sitekey="([^"]+)"/', $html, $matches);
+        $siteKey = $matches[1];
+        
+        d('siteKey', $siteKey);
+
+        // 3. Resolve o reCAPTCHA
+        $captchaResponse = $this->captcha->resolver($siteKey, $searchUrl);
+
+        $captchaResponse = $captchaResponse->get();
+
+        d('captchaResponse', $captchaResponse);
+
         $response = $this->clientHttp->post($searchUrl, [
             'headers' => [
                 'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                 'Accept-Language' => 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-                'Referer' => $pageUrl,
+                'Referer' => $searchUrl,
                 'Origin' => 'https://www.crecisp.gov.br',
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Upgrade-Insecure-Requests' => '1',
@@ -85,7 +78,6 @@ class CreciSPPlataformaImplementacao implements PlataformaCreci
                 'Sec-Fetch-Mode' => 'navigate',
                 'Sec-Fetch-User' => '?1',
                 'Sec-Fetch-Dest' => 'document',
-                // 'Cookie' → o Guzzle com CookieJar já cuida disso!
             ],
             'cookies' => $this->cookieJar,
             'form_params' => [
@@ -104,6 +96,9 @@ class CreciSPPlataformaImplementacao implements PlataformaCreci
         // 5. Extrai o link da lista de corretores
         $listPage = (string) $response->getBody();
 
+        dd($listPage);
+
+        // EXEMPLO: /cidadao/corretordetalhes?registerNumber=123478-F
         if(!preg_match('/corretordetalhes\?registerNumber=([^"]+)/', $listPage, $detalhes)){
             throw new Exception('Não foi possível encontrar o corretor.');
         }
