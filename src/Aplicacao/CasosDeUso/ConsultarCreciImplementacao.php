@@ -320,6 +320,14 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 		$conselhoNacionalCRECI = new ConselhoNacionalCRECI();
 
 		if($conselhoNacionalCRECI->estadoPossuiMembroAtivo($estadoEntity->getUF())){
+
+			$mensagem = "O estado {$estadoEntity->getFull()} - ({$estadoEntity->getUF()}) está desabilitado por enquanto. Estamos trabalhando para resolver o problema.";
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTAS, 
+				mensagem: $mensagem
+			);
+			throw new Exception($mensagem);
+
 			$plataformaCreci = new CreciConselhoPlataformaImplementacao(
 				uf: $estadoEntity->getUF(),
 				discord: $this->discord,
