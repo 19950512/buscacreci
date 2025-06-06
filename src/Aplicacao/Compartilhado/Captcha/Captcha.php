@@ -8,5 +8,6 @@ use App\Aplicacao\Compartilhado\Captcha\CaptchaResolvido;
 
 interface Captcha
 {
-    public function resolver(string $siteKey, string $pageUrl): CaptchaResolvido;
+    public function resolverV2(string $siteKey, string $pageUrl): CaptchaResolvido;
+    public function resolverV3(string $siteKey, string $pageUrl): CaptchaResolvido;
 }

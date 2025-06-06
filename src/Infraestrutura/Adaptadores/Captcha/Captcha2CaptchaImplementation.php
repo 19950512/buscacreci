@@ -16,8 +16,64 @@ class Captcha2CaptchaImplementation implements Captcha
     public function __construct(
         private Envrionment $env
     ){}
+
+    #[Override] public function resolverV3(string $siteKey, string $pageUrl): CaptchaResolvido
+    {
+
+        $clientKey = $this->env->get('CAPTCHA_TOKEN_2CAPTCHA');
+        $minScore = 0.9;
+        $pageAction = 'submit_broker_search';
+
+        $createTaskPayload = [
+            'clientKey' => $clientKey,
+            'task' => [
+                'type' => 'RecaptchaV3TaskProxyless',
+                'websiteURL' => $pageUrl,
+                'websiteKey' => $siteKey,
+                'minScore' => $minScore,
+                'pageAction' => $pageAction,
+                'isEnterprise' => false,
+                'apiDomain' => 'www.recaptcha.net'
+            ]
+        ];
+
+        $createTaskResponse = $this->postJson('https://api.2captcha.com/createTask', $createTaskPayload);
+        d('Create Task Response: ' . json_encode($createTaskResponse));
+
+        if (!isset($createTaskResponse['errorId']) || $createTaskResponse['errorId'] !== 0) {
+            throw new Exception('Erro ao criar tarefa de reCAPTCHA v3: ' . json_encode($createTaskResponse));
+        }
+
+        $taskId = $createTaskResponse['taskId'];
+
+        // Aguarda o resultado
+        $resultUrl = 'https://api.2captcha.com/getTaskResult';
+        $startTime = time();
+
+        while (true) {
+            sleep(5);
+
+            $getResultPayload = [
+                'clientKey' => $clientKey,
+                'taskId' => $taskId
+            ];
+
+            $resultResponse = $this->postJson($resultUrl, $getResultPayload);
+            d('Result Response: ' . json_encode($resultResponse));
+
+            if (isset($resultResponse['status']) && $resultResponse['status'] === 'ready') {
+                return new CaptchaResolvido($resultResponse['solution']['gRecaptchaResponse']);
+            }
+
+            if (time() - $startTime > 120) {
+                throw new Exception('Tempo limite excedido para resolver o reCAPTCHA v3.');
+            }
+        }
+
+        throw new Exception('Falha ao resolver o reCAPTCHA v3 com 2Captcha.');
+    }
     
-    #[Override] public function resolver(string $siteKey, string $pageUrl): CaptchaResolvido
+    #[Override] public function resolverV2(string $siteKey, string $pageUrl): CaptchaResolvido
     {
         $apiKey = $this->env->get('CAPTCHA_TOKEN_2CAPTCHA');
 
@@ -59,5 +115,26 @@ class Captcha2CaptchaImplementation implements Captcha
         }
 
         throw new Exception('Falha ao resolver o reCAPTCHA com 2Captcha.');
+    }
+
+    private function postJson(string $url, array $payload): array
+    {
+        $options = [
+            'http' => [
+                'method'  => 'POST',
+                'header'  => "Content-Type: application/json\r\n",
+                'content' => json_encode($payload),
+                'timeout' => 60
+            ]
+        ];
+
+        $context = stream_context_create($options);
+        $result = file_get_contents($url, false, $context);
+
+        if ($result === false) {
+            throw new Exception('Erro na requisição HTTP para ' . $url);
+        }
+
+        return json_decode($result, true);
     }
 }
