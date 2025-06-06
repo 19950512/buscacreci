@@ -54,13 +54,13 @@ class CreciConselhoPlataformaImplementacao implements PlataformaCreci
     #[Override] public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
     {
 
-        if(!Robots::isAllowedByRobotsTxt($this->baseURL. '/form_pesquisa_cadastro_geral_site.php')){
+        /* if(!Robots::isAllowedByRobotsTxt($this->baseURL. '/form_pesquisa_cadastro_geral_site.php')){
             $this->discord->enviarMensagem(
                 canalTexto: CanalTexto::WORKERS,
                 mensagem: 'Acesso negado pelo robots.txt - URL: '.$this->baseURL. '/form_pesquisa_cadastro_geral_site.php',
             );
             throw new Exception('Acesso negado pelo robots.txt');
-        }
+        } */
 
         $creciConsultado = $this->consultarApiCreci('/form_pesquisa_cadastro_geral_site.php', ["inscricao" => $creci]);
         $creciResponse = json_decode($creciConsultado->getBody()->getContents(), true);
