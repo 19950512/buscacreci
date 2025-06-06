@@ -228,7 +228,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			);
 			return;
 		}
-		
+
 		if($estadoEntity->getUF() == 'SP'){
 
 			$mensagem = 'O estado de São Paulo está com problemas de consulta. Tente novamente mais tarde.';
@@ -244,6 +244,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 				canalTexto: CanalTexto::CONSULTA_CRECI, 
 				mensagem: $mensagem
 			);
+			return;
 		}
 
 		$numeroInscricao = preg_replace('/[^0-9]/', '', $consultaInformacoes->creciCompleto);
