@@ -66,17 +66,21 @@ final class CreciController extends Controller
 
 		}catch (Exception $e){
 
+			error_log('CreciController error: ' . $e->getMessage());
+
 			$statusCode = 400;
 			$statusMessage = 'Bad Request';
+			$userMessage = 'Ocorreu um erro ao consultar os dados do CRECI.';
 			if(str_contains($e->getMessage(), 'não foi encontrado no CRECI')){
 				$statusCode = 404;
 				$statusMessage = 'Creci não encontrado';
+				$userMessage = 'O CRECI informado não foi encontrado.';
 			}
 
 			$this->response([
 				'statusCode' => $statusCode,
 				'statusMessage' => $statusMessage,
-				'message' => $e->getMessage()
+				'message' => $userMessage
 			]);
 		}
     }

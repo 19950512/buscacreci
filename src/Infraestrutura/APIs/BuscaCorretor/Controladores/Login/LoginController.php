@@ -61,8 +61,9 @@ final class LoginController extends Controller
 			exit;
 
 		} catch (Exception $e) {
+			error_log('JWT decode error: ' . $e->getMessage());
 			http_response_code(401);
-			echo json_encode(['error' => 'Token inválido', 'message' => $e->getMessage()]);
+			echo json_encode(['error' => 'Token inválido']);
 		}
     }
 }

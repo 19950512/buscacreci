@@ -89,7 +89,7 @@ class Captcha2CaptchaImplementation implements Captcha
             'json' => 1
         ];
 
-        $response = file_get_contents('http://2captcha.com/in.php?' . http_build_query($request));
+        $response = file_get_contents('https://2captcha.com/in.php?' . http_build_query($request));
         $responseData = json_decode($response, true);
 
         if(isset($responseData['status']) and $responseData['status'] == 1) {
@@ -101,7 +101,7 @@ class Captcha2CaptchaImplementation implements Captcha
                 sleep(5); // Espera 5 segundos antes de verificar novamente
 
                 // Verifica se o reCAPTCHA foi resolvido
-                $result = file_get_contents('http://2captcha.com/res.php?key=' . $apiKey . '&action=get&id=' . $captchaId . '&json=1');
+                $result = file_get_contents('https://2captcha.com/res.php?key=' . $apiKey . '&action=get&id=' . $captchaId . '&json=1');
 
                 $resultData = json_decode($result, true);
 

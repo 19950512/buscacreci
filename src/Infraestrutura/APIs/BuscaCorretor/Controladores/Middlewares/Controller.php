@@ -22,16 +22,16 @@ abstract class Controller
             $_POST = json_decode(json_decode(json_encode($json), true), true);
         }
 
-	    header('Access-Control-Allow-Origin: *');
-		header('Access-Control-Allow-Methods: GET');
-		header('Access-Control-Allow-Headers: Content-Type');
     }
 
     public function response(array $data)
     {
 		header('Content-Type: application/json');
-	    header('Server: github.com/19950512');
-	    header('X-Powered-By: 19950512');
+	    header_remove('Server');
+	    header_remove('X-Powered-By');
+	    header('X-Content-Type-Options: nosniff');
+	    header('X-Frame-Options: DENY');
+	    header('Referrer-Policy: strict-origin-when-cross-origin');
 
         if(isset($data['statusCode']) and is_numeric($data['statusCode'])){
             header("HTTP/1.0 {$data['statusCode']} {$data['statusMessage']}");

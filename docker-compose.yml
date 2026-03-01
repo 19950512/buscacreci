@@ -13,7 +13,7 @@ services:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_DB=${DB_DATABASE}
     ports:
-      - 8043:5432
+      - '127.0.0.1:8043:5432'
     networks:
       - buscacreci_network
 
@@ -22,7 +22,7 @@ services:
     container_name: buscacreci_redis
     restart: unless-stopped
     ports:
-      - 6379:6379
+      - '127.0.0.1:6379:6379'
     networks:
       - buscacreci_network
 
@@ -106,8 +106,8 @@ services:
     hostname: rabbitmq-master
     restart: unless-stopped
     ports:
-      - "15672:15672"
-      - "5672:5672"
+      - "127.0.0.1:15672:15672"
+      - "127.0.0.1:5672:5672"
     environment:
       - RABBITMQ_DEFAULT_USER=${EVENT_BUS_USER}
       - RABBITMQ_DEFAULT_PASS=${EVENT_BUS_PASSWORD}

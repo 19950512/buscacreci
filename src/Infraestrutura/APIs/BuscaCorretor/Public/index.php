@@ -12,7 +12,12 @@ $allowedOrigins = [
     'http://localhost:3000',
 ];
 
-session_start();
+session_start([
+    'cookie_httponly' => true,
+    'cookie_secure' => true,
+    'cookie_samesite' => 'Lax',
+    'use_strict_mode' => true,
+]);
 
 if (in_array(($_SERVER['HTTP_ORIGIN'] ?? ''), $allowedOrigins)) {
     header("Access-Control-Allow-Origin: " . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
