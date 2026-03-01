@@ -1,12 +1,12 @@
 services:
   postgres:
-    image: 'postgres:11.1-alpine'
+    image: 'postgres:16-alpine'
     container_name: buscacreci_postgres
     restart: unless-stopped
     working_dir: /application
     volumes:
       - './:/application'
-      - './docker/postgres/pg-config:/etc/postgresql'
+      - 'pg-data:/var/lib/postgresql/data'
       - './docker/postgres/init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql'
     environment:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -14,6 +14,15 @@ services:
       - POSTGRES_DB=${DB_DATABASE}
     ports:
       - 8043:5432
+    networks:
+      - buscacreci_network
+
+  redis:
+    image: 'redis:7-alpine'
+    container_name: buscacreci_redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
     networks:
       - buscacreci_network
 
@@ -33,40 +42,46 @@ services:
       - buscacreci_network
 
   laucher-queue:
-    build: ./docker/php-fpm # Use o Dockerfile para construir a imagem
-    command: php src/Infraestrutura/Workers/laucher.php # Comando para iniciar o worker
+    build: ./docker/php-fpm
+    command: php src/Infraestrutura/Adaptadores/Mensageria/laucher.php
     volumes:
-      - './:/application' # Mapeie o código-fonte para o contêiner
+      - './:/application'
+    env_file:
+      - .env
     depends_on:
-      - rabbitmq-master # Certifique-se de que o RabbitMQ esteja disponível antes de iniciar o worker
+      - rabbitmq-master
     deploy:
-      replicas: 1 # Número inicial de réplicas
+      replicas: 1
     networks:
       - buscacreci_network
 
   worker-email:
-    build: ./docker/php-fpm # Use o Dockerfile para construir a imagem
-    command: php src/Infraestrutura/Workers/Email/index.php # Comando para iniciar o worker
+    build: ./docker/php-fpm
+    command: php src/Infraestrutura/Workers/Email/index.php
     volumes:
-      - './:/application' # Mapeie o código-fonte para o contêiner
+      - './:/application'
+    env_file:
+      - .env
     depends_on:
       - laucher-queue
-      - rabbitmq-master # Certifique-se de que o RabbitMQ esteja disponível antes de iniciar o worker
+      - rabbitmq-master
     deploy:
-      replicas: 3 # Número inicial de réplicas
+      replicas: 3
     networks:
       - buscacreci_network
 
   worker-consulta-creci:
-    build: ./docker/php-fpm # Use o Dockerfile para construir a imagem
-    command: php src/Infraestrutura/Workers/ConsultaCreci/index.php # Comando para iniciar o worker
+    build: ./docker/php-fpm
+    command: php src/Infraestrutura/Workers/ConsultaCreci/index.php
     volumes:
-      - './:/application' # Mapeie o código-fonte para o contêiner
+      - './:/application'
+    env_file:
+      - .env
     depends_on:
       - laucher-queue
-      - rabbitmq-master # Certifique-se de que o RabbitMQ esteja disponível antes de iniciar o worker
+      - rabbitmq-master
     deploy:
-      replicas: 3 # Número inicial de réplicas
+      replicas: 3
     networks:
       - buscacreci_network
 
@@ -76,62 +91,34 @@ services:
     working_dir: /application
     depends_on:
       - postgres
+      - redis
     volumes:
       - './:/application'
-      - './docker/php-fpm/php-ini-overrides.ini:/etc/php/8.3/fpm/conf.d/99-overrides.ini'
+      - './docker/php-fpm/php-ini-overrides.ini:/etc/php/8.4/fpm/conf.d/99-overrides.ini'
     networks:
       - buscacreci_network
-    environment:
-      - DB_HOST=${DB_CONNECTION}
-      - DB_PORT=${DB_PORT}
-      - DB_DATABASE=${DB_DATABASE}
-      - DB_USER=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
+    env_file:
+      - .env
 
   rabbitmq-master:
-    image: rabbitmq:3.8-management-alpine
+    image: rabbitmq:3-management-alpine
+    container_name: buscacreci_rabbitmq
     hostname: rabbitmq-master
     restart: unless-stopped
     ports:
-      - "1${EVENT_BUS_PORT}:1${EVENT_BUS_PORT}"
-      - "${EVENT_BUS_PORT}:${EVENT_BUS_PORT}"
-      - "15692:15692"
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${EVENT_BUS_USER}
+      - RABBITMQ_DEFAULT_PASS=${EVENT_BUS_PASSWORD}
     volumes:
-      - './docker/rabbitmq:/var/lib/rabbitmq'
+      - 'rabbitmq-data:/var/lib/rabbitmq'
     networks:
       - buscacreci_network
-    deploy:
-      replicas: 1
-      placement:
-        constraints:
-          - node.role == manager
 
-  rabbitmq-slave:
-    image: rabbitmq:3.8-management-alpine
-    hostname: rabbitmq-slave
-    restart: unless-stopped
-    volumes:
-      - './docker/rabbitmq:/var/lib/rabbitmq'
-    networks:
-      - buscacreci_network
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "localhost", "${EVENT_BUS_PORT}" ]
-      interval: 5s
-      timeout: 15s
-      retries: 1
-    deploy:
-      replicas: 2
-      placement:
-        constraints:
-          - node.role == worker
 networks:
   buscacreci_network:
 
 volumes:
   pg-data:
-  pg-config:
-    driver: local
-    driver_opts:
-      type: "none"
-      o: "bind"
-      device: "$PWD/./docker/postgres"
+  rabbitmq-data:

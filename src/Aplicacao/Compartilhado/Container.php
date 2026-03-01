@@ -55,7 +55,7 @@ $container->addDefinitions([
 		$env = $container->get(Envrionment::class);
         try {
 
-            $linkConexao = "pgsql:host={$env->get('DB_HOST')};dbname={$env::get('DB_DATABASE')};user={$env::get('DB_USERNAME')};password={$env::get('DB_PASSWORD')};port={$env->get('DB_PORT')}";
+            $linkConexao = "pgsql:host={$env::get('DB_HOST')};dbname={$env::get('DB_DATABASE')};user={$env::get('DB_USERNAME')};password={$env::get('DB_PASSWORD')};port={$env::get('DB_PORT')}";
 
             $PDO = new PDO($linkConexao);
             $PDO->setAttribute(PDO::ATTR_EMULATE_PREPARES, 1);

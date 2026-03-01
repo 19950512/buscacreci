@@ -13,17 +13,31 @@ O Busca CRECI oferece uma solução abrangente, permitindo a consulta de correto
 
 ## Estados Disponíveis
 
-Atualmente, o Busca CRECI oferece suporte aos estados marcados abaixo. Estamos trabalhando para expandir nossa cobertura e incluir todos os estados em breve.
+O Busca CRECI suporta **todos os 27 estados brasileiros**! A maioria é consultada via Conselho Nacional CRECI, e alguns estados possuem scrapers dedicados com fallback automático.
 
 | DF  | SP  | TO  | MG  | RS  | RJ  | ES  | RO  | PR  | PE  | GO  | BA  | SC  | PA  |
 |-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
-| [ ] | [X] | [ ] | [ ] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] |
+| [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] |
 
 | MS  | CE  | SE  | RN  | AM  | MT  | MA  | PB  | AL  | PI  | AC  | RR  | AP  |
 |-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
 | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] | [X] |
 
-![Estados Implementados](https://buscacreci.com.br/brasilzao_implementado.png)
+### Fontes de Consulta
+
+- **SP**: Scraper dedicado com headless Chrome (reCAPTCHA Enterprise requer navegador real)
+- **RS e ES**: Scrapers dedicados nos sites oficiais
+- **22 estados**: API do Conselho Nacional CRECI (conselho.net.br)
+- **MG e TO**: Sem Conselho Nacional e sem scraper dedicado (contribuições bem-vindas!)
+
+> **Nota técnica**: O CRECI SP utiliza reCAPTCHA Enterprise do Google, que não pode ser resolvido por serviços como 2Captcha. A solução utiliza Node.js + Puppeteer para executar o captcha nativamente em um Chrome headless.
+
+### Requisitos adicionais para SP
+
+O scraper de SP requer:
+- **Node.js** (v18+)
+- **Google Chrome** ou Chromium
+- **puppeteer-core**: `npm install puppeteer-core`
 
 ## Como Usar
 
@@ -97,9 +111,28 @@ curl --request GET --url "https://api.buscacreci.com.br/creci?id=7f59bbd8-cb26-4
 Depois de clonar o projeto:
 
 ```bash
+# Copiar o arquivo de configuração e preencher com seus valores
+cp .env.example .env
+
+# Instalar dependências PHP
 composer install
+
+# Instalar dependências Node.js (necessário para scraper SP)
+npm install
+
+# Subir os containers
 docker compose up -d
 ```
+
+### Endpoints disponíveis
+
+| Endpoint | Descrição |
+|----------|-----------|
+| `GET /?creci=RS12345F` | Envia CRECI para consulta |
+| `GET /status?codigo_solicitacao=UUID` | Verifica status da consulta |
+| `GET /creci?id=UUID` | Obtém detalhes do CRECI |
+| `GET /estados` | Lista todos os estados e disponibilidade |
+| `GET /ultimoscrecis` | Lista os últimos CRECIs consultados |
 
 Acesse a API localmente em: `http://localhost:8053`
 

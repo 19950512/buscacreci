@@ -47,7 +47,6 @@ final class LoginController extends Controller
 			// 2. Decodifica e valida a assinatura
 			$decoded = JWT::decode($jwt, $keys);
 
-			dd($decoded);
 			$payload = (array) $decoded;
 
 			// 3. Salva os dados na sessão

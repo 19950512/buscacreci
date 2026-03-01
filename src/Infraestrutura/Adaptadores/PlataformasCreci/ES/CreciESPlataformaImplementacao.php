@@ -29,7 +29,7 @@ final readonly class CreciESPlataformaImplementacao implements PlataformaCreci
 
 		$this->clientHttp = new Client([
 		    'base_uri' => $this->baseURL,
-		    'timeout'  => 2.0,
+		    'timeout'  => 30.0,
 		]);
 	}
 

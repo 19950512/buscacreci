@@ -4,289 +4,167 @@ declare(strict_types=1);
 
 namespace App\Infraestrutura\Adaptadores\PlataformasCreci\SP;
 
-use DOMXPath;
 use Override;
 use Exception;
-use DOMDocument;
-use GuzzleHttp\Cookie\CookieJar;
 use App\Aplicacao\CasosDeUso\PlataformaCreci;
-use App\Aplicacao\Compartilhado\Captcha\Captcha;
 use App\Aplicacao\Compartilhado\Discord\Discord;
+use App\Aplicacao\Compartilhado\Discord\Enums\CanalTexto;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\Robots;
 use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
-use App\Aplicacao\Compartilhado\Discord\Enums\CanalTexto;
 
+/**
+ * Implementação do scraper de CRECI para São Paulo.
+ *
+ * O CRECI SP utiliza reCAPTCHA Enterprise, que não pode ser resolvido por
+ * serviços como 2Captcha. A solução é usar um navegador Chrome headless
+ * real (via Node.js + Puppeteer) para executar o reCAPTCHA Enterprise
+ * nativamente no contexto do navegador.
+ *
+ * A página de detalhes do CRECI SP só aceita POST (não GET), por isso
+ * é necessário navegar pela busca → lista → detalhes dentro do browser.
+ */
 class CreciSPPlataformaImplementacao implements PlataformaCreci
 {
-	private \GuzzleHttp\Client $clientHttp;
+	private string $baseURL = 'https://www.crecisp.gov.br';
 
-    private CookieJar $cookieJar;
+	/** Caminho para o script Node.js que faz o scraping */
+	private string $scraperScript;
 
 	public function __construct(
-        private Captcha $captcha,
-        private Discord $discord
-    ){
-
-		$this->clientHttp = new \GuzzleHttp\Client([
-		    'base_uri' => 'https://www.creci-rs.gov.br',
-		    'timeout'  => 9999.0,
-			'origin' => 'www.creci-rs.gov.br'
-		]);
-
-        $this->cookieJar = new CookieJar(true);
+		private Discord $discord,
+	){
+		$this->scraperScript = __DIR__ . '/creci_sp_scraper.js';
 	}
 
-	#[Override] public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
-    {
+	#[Override]
+	public function consultarCreci(string $creci, string $tipoCreci): SaidaConsultarCreciPlataforma
+	{
+		$searchUrl = $this->baseURL . '/cidadao/buscaporcorretores';
 
-        $searchUrl = 'https://www.crecisp.gov.br/cidadao/buscaporcorretores';
+		if (!Robots::isAllowedByRobotsTxt($searchUrl)) {
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::WORKERS,
+				mensagem: 'Acesso negado pelo robots.txt - URL: ' . $searchUrl,
+			);
+			throw new Exception('Acesso negado pelo robots.txt');
+		}
 
-        if(!Robots::isAllowedByRobotsTxt($searchUrl)){
-            $this->discord->enviarMensagem(
-                canalTexto: CanalTexto::WORKERS,
-                mensagem: 'Acesso negado pelo robots.txt - URL: '.$searchUrl,
-            );
-            throw new Exception('Acesso negado pelo robots.txt');
-        }
+		$this->discord->enviarMensagem(
+			canalTexto: CanalTexto::CONSULTAS,
+			mensagem: "CRECI SP: Iniciando consulta do CRECI {$creci}-{$tipoCreci} via headless Chrome",
+		);
 
-        // 2. Acessa a página e captura o sitekey do reCAPTCHA
-        $response = $this->clientHttp->get($searchUrl, ['cookies' => $this->cookieJar]);
-        $html = (string) $response->getBody();
+		// Verificar se Node.js está disponível
+		$nodePath = $this->findNodePath();
+		if ($nodePath === null) {
+			throw new Exception('Node.js não encontrado. Necessário para consultar CRECI SP (reCAPTCHA Enterprise).');
+		}
 
-        preg_match('/data-sitekey="([^"]+)"/', $html, $matches);
-        $siteKey = $matches[1];
-        
-        d('siteKey', $siteKey);
+		// Verificar se o script existe
+		if (!file_exists($this->scraperScript)) {
+			throw new Exception("Script do scraper SP não encontrado: {$this->scraperScript}");
+		}
 
-        // 3. Resolve o reCAPTCHA
-        $captchaResponse = $this->captcha->resolver($siteKey, $searchUrl);
+		// Verificar se puppeteer-core está instalado
+		$projectRoot = dirname($this->scraperScript, 6); // Go up to project root
+		$puppeteerPath = $projectRoot . '/node_modules/puppeteer-core';
+		if (!is_dir($puppeteerPath)) {
+			throw new Exception(
+				"puppeteer-core não instalado. Execute: cd {$projectRoot} && npm install puppeteer-core"
+			);
+		}
 
-        $captchaResponse = $captchaResponse->get();
+		// Executar o script Node.js
+		$creciEscaped = escapeshellarg($creci);
+		$tipoCreciEscaped = escapeshellarg($tipoCreci);
+		$scriptEscaped = escapeshellarg($this->scraperScript);
+		$nodeEscaped = escapeshellarg($nodePath);
 
-        d('captchaResponse', $captchaResponse);
+		$command = "{$nodeEscaped} {$scriptEscaped} {$creciEscaped} {$tipoCreciEscaped} 2>/dev/null";
 
-        $response = $this->clientHttp->post($searchUrl, [
-            'headers' => [
-                'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
-                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                'Accept-Language' => 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-                'Referer' => $searchUrl,
-                'Origin' => 'https://www.crecisp.gov.br',
-                'Content-Type' => 'application/x-www-form-urlencoded',
-                'Upgrade-Insecure-Requests' => '1',
-                'Sec-Fetch-Site' => 'same-origin',
-                'Sec-Fetch-Mode' => 'navigate',
-                'Sec-Fetch-User' => '?1',
-                'Sec-Fetch-Dest' => 'document',
-            ],
-            'cookies' => $this->cookieJar,
-            'form_params' => [
-                'IsFinding' => 'True',
-                'RegisterNumber' => $creci,
-                'CPF' => '',
-                'Name' => '',
-                'Area' => '',
-                'City' => '',
-                'Language' => '',
-                'Avaliador' => '',
-                'g-recaptcha-response' => $captchaResponse,
-            ],
-        ]);
+		$this->discord->enviarMensagem(
+			canalTexto: CanalTexto::CONSULTAS,
+			mensagem: "CRECI SP: Executando headless Chrome para CRECI {$creci}-{$tipoCreci}...",
+		);
 
-        // 5. Extrai o link da lista de corretores
-        $listPage = (string) $response->getBody();
+		$output = [];
+		$returnCode = 0;
+		exec($command, $output, $returnCode);
 
-        dd($listPage);
+		$jsonOutput = implode('', $output);
 
-        // EXEMPLO: /cidadao/corretordetalhes?registerNumber=123478-F
-        if(!preg_match('/corretordetalhes\?registerNumber=([^"]+)/', $listPage, $detalhes)){
-            throw new Exception('Não foi possível encontrar o corretor.');
-        }
+		if (empty($jsonOutput)) {
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTAS,
+				mensagem: "CRECI SP: Script retornou saída vazia (código: {$returnCode})",
+			);
+			throw new Exception("Scraper SP retornou saída vazia. Código de saída: {$returnCode}");
+		}
 
-        $registerNumber = $detalhes[1];
+		$result = json_decode($jsonOutput, true);
 
-        // 6. Acessa a página de detalhes
-        $detalhesUrl = "https://www.crecisp.gov.br/cidadao/corretordetalhes?registerNumber={$registerNumber}";
+		if (!is_array($result)) {
+			throw new Exception("Scraper SP retornou JSON inválido: {$jsonOutput}");
+		}
 
-        if(!Robots::isAllowedByRobotsTxt($detalhesUrl)){
-            $this->discord->enviarMensagem(
-                canalTexto: CanalTexto::WORKERS,
-                mensagem: 'Acesso negado pelo robots.txt - URL: '.$detalhesUrl,
-            );
-            throw new Exception('Acesso negado pelo robots.txt');
-        }
+		if (!($result['success'] ?? false)) {
+			$errorMsg = $result['error'] ?? 'Erro desconhecido';
+			$this->discord->enviarMensagem(
+				canalTexto: CanalTexto::CONSULTAS,
+				mensagem: "CRECI SP: Erro na consulta - {$errorMsg}",
+			);
+			throw new Exception("CRECI SP: {$errorMsg}");
+		}
 
-        $response = $this->clientHttp->post($detalhesUrl, [
-            'headers' => [
-                'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
-                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                'Accept-Language' => 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-                'Referer' => 'https://www.crecisp.gov.br/cidadao/listadecorretores',
-                'Origin' => 'https://www.crecisp.gov.br',
-                'Content-Type' => 'application/x-www-form-urlencoded',
-                'Upgrade-Insecure-Requests' => '1',
-                'Sec-Fetch-Site' => 'same-origin',
-                'Sec-Fetch-Mode' => 'navigate',
-                'Sec-Fetch-User' => '?1',
-                'Sec-Fetch-Dest' => 'document',
-            ],
-            'cookies' => $this->cookieJar,
-            'body' => '' // obrigatório pois o método é POST, mas sem payload
-        ]);
+		$data = $result['data'];
 
-        libxml_use_internal_errors(true); // evitar warnings por HTML malformado
+		$this->discord->enviarMensagem(
+			canalTexto: CanalTexto::CONSULTAS,
+			mensagem: "CRECI SP: Corretor encontrado - {$data['nomeCompleto']} (CRECI {$creci}-{$tipoCreci}) - Situação: {$data['situacao']}",
+		);
 
-        $dom = new DOMDocument();
-        $dom->loadHTML((string) $response->getBody());
-        $xpath = new DOMXPath($dom);
+		return new SaidaConsultarCreciPlataforma(
+			inscricao: $data['inscricao'] ?? $creci,
+			nomeCompleto: $data['nomeCompleto'],
+			fantasia: '',
+			situacao: $data['situacao'] ?? 'Desconhecido',
+			cidade: $data['cidade'] ?? '',
+			estado: 'SP',
+			data: $data['dataInscricao'] ?? '',
+		);
+	}
 
-        // Localiza o escopo principal da div
-        $mainDiv = $xpath->query("//div[contains(@class, 'main-container') and contains(@class, 'cidadao') and contains(@class, 'corretordetalhes')]")->item(0);
+	/**
+	 * Localiza o executável do Node.js no sistema.
+	 */
+	private function findNodePath(): ?string
+	{
+		// Tenta via which
+		$whichOutput = trim(shell_exec('which node 2>/dev/null') ?? '');
+		if (!empty($whichOutput) && file_exists($whichOutput)) {
+			return $whichOutput;
+		}
 
-        if (!$mainDiv) {
-            throw new Exception("Não foi possível localizar a div principal com os dados do corretor.");
-        }
+		// Tenta caminhos comuns
+		$paths = [
+			'/usr/bin/node',
+			'/usr/local/bin/node',
+		];
 
-        // Criar novo DOM apenas com o conteúdo da div principal
-        $newDom = new DOMDocument();
-        $newDom->appendChild($newDom->importNode($mainDiv, true));
-        $newXpath = new DOMXPath($newDom);
+		// Verifica NVM paths
+		$homeDir = getenv('HOME') ?: '/root';
+		$nvmPaths = glob("{$homeDir}/.nvm/versions/node/*/bin/node");
+		if (!empty($nvmPaths)) {
+			rsort($nvmPaths);
+			$paths = array_merge($nvmPaths, $paths);
+		}
 
-        // Pegar a imagem de perfil dentro da div principal
-        $imgTag = $newXpath->query("//img")->item(0);
-        $fotoPerfil = $imgTag ? $imgTag->getAttribute('src') : null;
+		foreach ($paths as $path) {
+			if (file_exists($path) && is_executable($path)) {
+				return $path;
+			}
+		}
 
-        if ($fotoPerfil && str_starts_with($fotoPerfil, '//')) {
-            $fotoPerfil = 'https:' . $fotoPerfil;
-        }
-
-        $fotoPerfil = explode('?', $fotoPerfil)[0]; // remove parâmetros da URL
-
-        // se no html tiver um id btnShowPhones, então o corretor tem telefone
-        $hasPhones = $newXpath->query("//button[@id='btnShowPhones']")->length > 0;
-        $phones = [];
-        if($hasPhones){
-            try {
-
-                $phones = $this->getDetalhes($registerNumber, 'phones');
-            }catch (Exception $e) {
-                $phones = [];
-            }
-        }
-
-        // se no html tiver um id secondaryEmail, então o corretor tem email
-        $hasEmail = $newXpath->query("//span[@id='secondaryEmail']")->length > 0;
-        $email = [];
-        if($hasEmail){
-            try {
-                $email = $this->getDetalhes($registerNumber, 'secondaryEmail');
-            }catch (Exception $e) {
-                $email = [];
-            }
-        }
-
-        try {
-            $enderecos = $this->getDetalhes($registerNumber, 'addresses');
-        }catch (Exception $e) {
-            $enderecos = [];
-        }
-
-        // Unificação e limpeza
-        $phonesTemp = $phones['values'] ?? [];
-        if (!empty($phones['value'])) $phonesTemp[] = $phones['value'];
-
-        $emailsTemp = $email['values'] ?? [];
-        if (!empty($email['value'])) $emailsTemp[] = $email['value'];
-
-        $enderecosTemp = $enderecos['values'] ?? [];
-        if (!empty($enderecos['value'])) $enderecosTemp[] = $enderecos['value'];
-
-        $dados = [
-            'creci' => $registerNumber,
-            'nome' => $this->extractText($newXpath, "//h3[1]"),
-            'dataInscricao' => $this->extractText($newXpath, "//label[@for='CurrentCategoryDate']/parent::strong/following-sibling::span"),
-            'situacao' => $this->extractText($newXpath, "//label[@for='RegistrationStatus']/parent::strong/following-sibling::span"),
-            'foto' => $fotoPerfil,
-            'telefones' => array_unique($phonesTemp),
-            'emails' => array_unique($emailsTemp),
-            'enderecos' => array_unique($enderecosTemp),
-        ];
-
-        return new SaidaConsultarCreciPlataforma(
-            inscricao: $dados['creci'],
-            nomeCompleto: $dados['nome'],
-            fantasia: $dados['nome'],
-            situacao: $dados['situacao'],
-            cidade: 'SP',
-            estado: 'SP'
-        );
-    }
-
-    // Função auxiliar para extrair textos
-    private function extractText($xpath, $query) {
-        $node = $xpath->query($query)->item(0);
-        return $node ? trim($node->nodeValue) : null;
-    }
-
-    private function getDetalhes($creci, $infoType): array
-    {
-    
-        $siteKey = '6LdeSBITAAAAAMq-ckp15zFfmVs0ZXMNwnCPxkob';
-        $detalhesUrl = 'https://www.crecisp.gov.br/cidadao/corretordetalhes?registerNumber=' . $creci;
-
-        if(!Robots::isAllowedByRobotsTxt($detalhesUrl)){
-            $this->discord->enviarMensagem(
-                canalTexto: CanalTexto::WORKERS,
-                mensagem: 'Acesso negado pelo robots.txt - URL: '.$detalhesUrl,
-            );
-            throw new Exception('Acesso negado pelo robots.txt');
-        }
-        
-        $captchaResponse = $this->captcha->resolver($siteKey, $detalhesUrl);
-
-        $captchaResponse = $captchaResponse->get();
-        
-        $curl = curl_init();
-        
-        $headers = [
-            'Content-Type: application/json',
-            'Origin: https://www.crecisp.gov.br',
-            "Referer: $detalhesUrl",
-            'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
-        ];
-
-        $baseURL = "https://www.crecisp.gov.br/api/details/broker";
-
-        if(!Robots::isAllowedByRobotsTxt($baseURL)){
-            $this->discord->enviarMensagem(
-                canalTexto: CanalTexto::WORKERS,
-                mensagem: 'Acesso negado pelo robots.txt - URL: '.$baseURL,
-            );
-            throw new Exception('Acesso negado pelo robots.txt');
-        }
-        
-        curl_setopt_array($curl, [
-          CURLOPT_URL => $baseURL,
-          CURLOPT_RETURNTRANSFER => true,
-          CURLOPT_ENCODING => "",
-          CURLOPT_MAXREDIRS => 10,
-          CURLOPT_TIMEOUT => 30,
-          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-          CURLOPT_CUSTOMREQUEST => 'POST',
-          CURLOPT_POSTFIELDS => "{\n\t\"infoType\":\"$infoType\",\n\t\"creci\":\"$creci\",\n\t \"captchaResponse\":\"$captchaResponse\"\n}",
-          CURLOPT_HTTPHEADER => $headers,
-        ]);
-        
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-        
-        curl_close($curl);
-        
-        if ($err) {
-            throw new Exception("cURL Error #:" . $err);
-        } else {
-            $json = json_decode($response, true);
-            return $json;
-        }
-    }
+		return null;
+	}
 }

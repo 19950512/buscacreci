@@ -17,28 +17,32 @@ class Captcha2CaptchaImplementation implements Captcha
         private Envrionment $env
     ){}
 
-    #[Override] public function resolverV3(string $siteKey, string $pageUrl): CaptchaResolvido
+    #[Override] public function resolverV3(string $siteKey, string $pageUrl, bool $isEnterprise = false, string $pageAction = 'submit_broker_search'): CaptchaResolvido
     {
 
         $clientKey = $this->env->get('CAPTCHA_TOKEN_2CAPTCHA');
         $minScore = 0.9;
-        $pageAction = 'submit_broker_search';
+
+        $task = [
+            'type' => 'RecaptchaV3TaskProxyless',
+            'websiteURL' => $pageUrl,
+            'websiteKey' => $siteKey,
+            'minScore' => $minScore,
+            'pageAction' => $pageAction,
+        ];
+
+        if ($isEnterprise) {
+            $task['isEnterprise'] = true;
+        } else {
+            $task['apiDomain'] = 'www.recaptcha.net';
+        }
 
         $createTaskPayload = [
             'clientKey' => $clientKey,
-            'task' => [
-                'type' => 'RecaptchaV3TaskProxyless',
-                'websiteURL' => $pageUrl,
-                'websiteKey' => $siteKey,
-                'minScore' => $minScore,
-                'pageAction' => $pageAction,
-                'isEnterprise' => false,
-                'apiDomain' => 'www.recaptcha.net'
-            ]
+            'task' => $task,
         ];
 
         $createTaskResponse = $this->postJson('https://api.2captcha.com/createTask', $createTaskPayload);
-        d('Create Task Response: ' . json_encode($createTaskResponse));
 
         if (!isset($createTaskResponse['errorId']) || $createTaskResponse['errorId'] !== 0) {
             throw new Exception('Erro ao criar tarefa de reCAPTCHA v3: ' . json_encode($createTaskResponse));
@@ -59,7 +63,6 @@ class Captcha2CaptchaImplementation implements Captcha
             ];
 
             $resultResponse = $this->postJson($resultUrl, $getResultPayload);
-            d('Result Response: ' . json_encode($resultResponse));
 
             if (isset($resultResponse['status']) && $resultResponse['status'] === 'ready') {
                 return new CaptchaResolvido($resultResponse['solution']['gRecaptchaResponse']);
@@ -89,11 +92,6 @@ class Captcha2CaptchaImplementation implements Captcha
         $response = file_get_contents('http://2captcha.com/in.php?' . http_build_query($request));
         $responseData = json_decode($response, true);
 
-        d('SiteKey: ' . $siteKey);
-        d('PageUrl: ' . $pageUrl);
-        d('Response: ' . $response);
-        d('ResponseData: ' . json_encode($responseData));
-
         if(isset($responseData['status']) and $responseData['status'] == 1) {
             // Captura o ID da solicitação para resolver o reCAPTCHA
             $captchaId = $responseData['request'];
@@ -105,7 +103,6 @@ class Captcha2CaptchaImplementation implements Captcha
                 // Verifica se o reCAPTCHA foi resolvido
                 $result = file_get_contents('http://2captcha.com/res.php?key=' . $apiKey . '&action=get&id=' . $captchaId . '&json=1');
 
-                d($result);
                 $resultData = json_decode($result, true);
 
                 if ($resultData['status'] == 1) {

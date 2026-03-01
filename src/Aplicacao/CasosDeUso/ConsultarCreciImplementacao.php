@@ -142,13 +142,6 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			);
 		}
 
-		if($estadoEntity->getUF() == 'SP'){
-			$this->discord->enviarMensagem(
-				canalTexto: CanalTexto::CONSULTAS, 
-				mensagem: "Atenção, alguem está tentando consultar o CRECI de São Paulo. - {$creci}"
-			);
-		}
-
 		$creciTemporario = strtoupper($creci);
 		// Vamos remover o estado do creci
 		$creciTemporario = str_replace($estadoEntity->getUF(), '', $creciTemporario);
@@ -214,24 +207,6 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 
 		if($estadoEntity->getUF() == 'NN'){
 			$mensagem = 'Informe o estado no Creci. Exemplo: RS12345F';
-
-			$this->creciRepositorio->atualizarConsultaCodigoSolicitacao(
-				codigoSolicitacao: $codigoSolicitacao->get(),
-				situacao: 'FINALIZADO',
-				momento: date('Y-m-d H:i:s'),
-				creciCodigo: $consultaInformacoes->creciID,
-				mensagemErro: $mensagem,
-			);
-			$this->discord->enviarMensagem(
-				canalTexto: CanalTexto::CONSULTA_CRECI, 
-				mensagem: $mensagem
-			);
-			return;
-		}
-
-		if($estadoEntity->getUF() == 'SP'){
-
-			$mensagem = 'O estado de São Paulo está com problemas de consulta. Tente novamente mais tarde.';
 
 			$this->creciRepositorio->atualizarConsultaCodigoSolicitacao(
 				codigoSolicitacao: $codigoSolicitacao->get(),
@@ -316,74 +291,73 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 
 	private function consultarCreciNaPlataforma(Estado $estadoEntity, string $numeroInscricao, string $tipoCreci): SaidaConsultarCreciPlataforma
 	{
+		// Primeiro, verifica se o estado possui um scraper dedicado
+		$creciImplementado = CreciImplementado::tryFrom($estadoEntity->getUF());
 
+		if(is_a($creciImplementado, CreciImplementado::class)){
+
+			$plataformaCreci = match ($creciImplementado) {
+				CreciImplementado::RS => new CreciRSPlataformaImplementacao(
+					discord: $this->discord,
+				),
+				CreciImplementado::ES => new CreciESPlataformaImplementacao(
+					discord: $this->discord,
+				),
+				CreciImplementado::SP => new CreciSPPlataformaImplementacao(
+					discord: $this->discord,
+				),
+			};
+
+			try {
+				return $plataformaCreci->consultarCreci(
+					creci: $numeroInscricao,
+					tipoCreci: $tipoCreci
+				);
+			} catch (Exception $e) {
+				$this->discord->enviarMensagem(
+					canalTexto: CanalTexto::CONSULTAS,
+					mensagem: "Erro no scraper dedicado {$creciImplementado->value}: {$e->getMessage()}. Tentando via Conselho Nacional."
+				);
+				// Se o scraper dedicado falhar, tenta via Conselho Nacional como fallback
+			}
+		}
+
+		// Tenta via Conselho Nacional CRECI (cobre a maioria dos estados)
 		$conselhoNacionalCRECI = new ConselhoNacionalCRECI();
 
 		if($conselhoNacionalCRECI->estadoPossuiMembroAtivo($estadoEntity->getUF())){
 
-			$mensagem = "O estado {$estadoEntity->getFull()} - ({$estadoEntity->getUF()}) está desabilitado por enquanto. Estamos trabalhando para resolver o problema.";
 			$this->discord->enviarMensagem(
-				canalTexto: CanalTexto::CONSULTAS, 
-				mensagem: $mensagem
+				canalTexto: CanalTexto::CONSULTAS,
+				mensagem: "Consultando CRECI via Conselho Nacional para {$estadoEntity->getFull()} ({$estadoEntity->getUF()})"
 			);
-			throw new Exception($mensagem);
 
 			$plataformaCreci = new CreciConselhoPlataformaImplementacao(
 				uf: $estadoEntity->getUF(),
 				discord: $this->discord,
 			);
 
-			return $plataformaCreci->consultarCreci(
-				creci: $numeroInscricao,
-				tipoCreci: $tipoCreci
-			);
+			try {
+				return $plataformaCreci->consultarCreci(
+					creci: $numeroInscricao,
+					tipoCreci: $tipoCreci
+				);
+			} catch (Exception $e) {
+				$mensagem = "O número de inscrição {$numeroInscricao} não foi encontrado no CRECI {$estadoEntity->getUF()}.";
+				$this->discord->enviarMensagem(
+					canalTexto: CanalTexto::CONSULTAS,
+					mensagem: $mensagem . "\nErro: {$e->getMessage()}"
+				);
+				throw new Exception($mensagem);
+			}
 		}
 
-		$creciImplementado = CreciImplementado::tryFrom($estadoEntity->getUF());
-		if(!is_a($creciImplementado, CreciImplementado::class)){
-			$mensagem = "Ainda não implementamos o estado informado. {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})";
-
-			$this->discord->enviarMensagem(
-				canalTexto: CanalTexto::CONSULTAS, 
-				mensagem: $mensagem
-			);
-			throw new Exception($mensagem);
-		}
-
-		$plataformaCreci = match ($creciImplementado) {
-			CreciImplementado::RS => new CreciRSPlataformaImplementacao(
-				discord: $this->discord,
-			),
-			CreciImplementado::ES => new CreciESPlataformaImplementacao(
-				discord: $this->discord,
-			),
-			CreciImplementado::SP => new CreciSPPlataformaImplementacao(
-				captcha: $this->captcha,
-				discord: $this->discord,
-			),
-			default => throw new Exception("Ainda não implementamos o estado informado! {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})"),
-		};
-
-		try {
-
-			$resposta = $plataformaCreci->consultarCreci(
-				creci: $numeroInscricao,
-				tipoCreci: $tipoCreci
-			);
-
-			return $resposta;
-
-		}catch (Exception $e){
-
-			$mensagem = "O número de inscrição {$numeroInscricao} não foi encontrado no CRECI {$creciImplementado->value}.";
-
-			$this->discord->enviarMensagem(
-				canalTexto: CanalTexto::CONSULTAS, 
-				mensagem: $mensagem."\nErro: {$e->getMessage()}"
-			);
-
-			throw new Exception($mensagem);
-		}
+		$mensagem = "Ainda não implementamos o estado informado. {$estadoEntity->getFull()} - ({$estadoEntity->getUF()})";
+		$this->discord->enviarMensagem(
+			canalTexto: CanalTexto::CONSULTAS,
+			mensagem: $mensagem
+		);
+		throw new Exception($mensagem);
 	}
 
 	private function encontrarEstadoPorCreci(array $estadosDoBrasil, string $creci): Estado

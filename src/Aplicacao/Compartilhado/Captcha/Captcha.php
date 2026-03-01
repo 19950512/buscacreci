@@ -9,5 +9,5 @@ use App\Aplicacao\Compartilhado\Captcha\CaptchaResolvido;
 interface Captcha
 {
     public function resolverV2(string $siteKey, string $pageUrl): CaptchaResolvido;
-    public function resolverV3(string $siteKey, string $pageUrl): CaptchaResolvido;
+    public function resolverV3(string $siteKey, string $pageUrl, bool $isEnterprise = false, string $pageAction = 'submit_broker_search'): CaptchaResolvido;
 }

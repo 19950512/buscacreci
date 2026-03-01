@@ -30,15 +30,15 @@ class ConselhoNacionalCRECI
             ),
             new MembroDoConselho(
                 estado: new Estado('SP'),
-                ativo: false
+                ativo: false // DNS não existe para www.crecisp.conselho.net.br
             ),
             new MembroDoConselho(
                 estado: new Estado('ES'),
-                ativo: false
+                ativo: false // DNS não existe para www.crecies.conselho.net.br
             ),
             new MembroDoConselho(
                 estado: new Estado('MG'),
-                ativo: false
+                ativo: false // DNS não existe para www.crecimg.conselho.net.br
             ),
             new MembroDoConselho(
                 estado: new Estado('PE'),
@@ -50,7 +50,7 @@ class ConselhoNacionalCRECI
             ),
             new MembroDoConselho(
                 estado: new Estado('DF'),
-                ativo: false
+                ativo: true
             ),
             new MembroDoConselho(
                 estado: new Estado('BA'),
@@ -106,7 +106,7 @@ class ConselhoNacionalCRECI
             ),
             new MembroDoConselho(
                 estado: new Estado('TO'),
-                ativo: false
+                ativo: false // DNS não existe para www.crecito.conselho.net.br
             ),
             new MembroDoConselho(
                 estado: new Estado('AC'),
@@ -119,6 +119,10 @@ class ConselhoNacionalCRECI
             new MembroDoConselho(
                 estado: new Estado('AP'),
                 ativo: true
+            ),
+            new MembroDoConselho(
+                estado: new Estado('RS'),
+                ativo: false // DNS não existe para www.crecirs.conselho.net.br
             ),
         ];
     }

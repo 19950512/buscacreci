@@ -41,7 +41,7 @@ class CreciConselhoPlataformaImplementacao implements PlataformaCreci
             ]);
             
         } catch(Exception $e){
-            throw new Exception("Erro ao consultar a API do creci PR". $e->getMessage());
+            throw new Exception("Erro ao consultar a API do CRECI " . $this->uf . ": " . $e->getMessage());
         }
 
         if($response->getStatusCode() !== 200){

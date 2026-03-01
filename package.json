@@ -1,0 +1,27 @@
+{
+  "name": "buscacreci",
+  "version": "1.0.0",
+  "description": "O **Busca CRECI** é uma API desenvolvida para facilitar a consulta de informações sobre corretores de imóveis registrados no CRECI (Conselho Regional de Corretores de Imóveis) em todo o Brasil. Este projeto nasceu da necessidade de centralizar e simplificar o acesso a dados sobre corretores, proporcionando uma solução rápida e eficiente para desenvolvedores e empresas do ramo imobiliário.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/19950512/buscacreci.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/19950512/buscacreci/issues"
+  },
+  "homepage": "https://github.com/19950512/buscacreci#readme",
+  "dependencies": {
+    "puppeteer-core": "^24.37.5"
+  }
+}

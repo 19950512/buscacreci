@@ -18,6 +18,21 @@ class EnvrionmentImplementacao implements Envrionment
     #[Override] public static function get(string $key): string | bool | int
     {
 
+        // First check actual environment variables (Docker, etc.)
+        $envValue = getenv($key);
+        if ($envValue !== false) {
+            $valor = match($envValue){
+                'true', 'True' => true,
+                'false', 'False' => false,
+                default => $envValue
+            };
+            if(is_numeric($valor)){
+                return (int) $valor;
+            }
+            return $valor;
+        }
+
+        // Fallback to .env file
         self::load();
 
         if(!array_key_exists($key, self::$env)){
@@ -45,7 +60,8 @@ class EnvrionmentImplementacao implements Envrionment
         }
 
         if(!file_exists(self::$pathForENV)){
-            throw new Exception("Arquivo .env não encontrado.");
+            // No .env file - environment variables might be set via Docker
+            return;
         }
 
         $env = file_get_contents(self::$pathForENV);
