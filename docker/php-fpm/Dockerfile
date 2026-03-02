@@ -46,7 +46,7 @@ RUN npm install --omit=dev
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Copie o arquivo php.ini para o container
-COPY ./php-ini-overrides.ini /usr/local/etc/php/php.ini
+COPY ./docker/php-fpm/php-ini-overrides.ini /usr/local/etc/php/php.ini
 
 # Exponha a porta 9000 para o PHP-FPM
 EXPOSE 9000

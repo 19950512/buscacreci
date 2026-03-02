@@ -44,7 +44,9 @@ services:
       - nginx_web
 
   laucher-queue:
-    build: ./docker/php-fpm
+    build:
+      context: .
+      dockerfile: docker/php-fpm/Dockerfile
     command: php src/Infraestrutura/Adaptadores/Mensageria/laucher.php
     volumes:
       - './:/application'
@@ -58,7 +60,9 @@ services:
       - buscacreci_network
 
   worker-email:
-    build: ./docker/php-fpm
+    build:
+      context: .
+      dockerfile: docker/php-fpm/Dockerfile
     command: php src/Infraestrutura/Workers/Email/index.php
     volumes:
       - './:/application'
@@ -73,7 +77,9 @@ services:
       - buscacreci_network
 
   worker-consulta-creci:
-    build: ./docker/php-fpm
+    build:
+      context: .
+      dockerfile: docker/php-fpm/Dockerfile
     command: php src/Infraestrutura/Workers/ConsultaCreci/index.php
     volumes:
       - './:/application'
@@ -88,7 +94,9 @@ services:
       - buscacreci_network
 
   php-fpm:
-    build: ./docker/php-fpm
+    build:
+      context: .
+      dockerfile: docker/php-fpm/Dockerfile
     container_name: buscacreci_php
     working_dir: /application
     depends_on:
