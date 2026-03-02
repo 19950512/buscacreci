@@ -8,5 +8,8 @@ enum CreciImplementado: string
 {
 	case RS = 'RS';
 	case ES = 'ES';
-	case SP = 'SP';
+	// SP removido temporariamente - CRECI SP usa reCAPTCHA Enterprise
+	// cuja validação server-side está rejeitando 100% dos tokens
+	// (inclusive tokens gerados por Chrome real). Reativar quando resolver.
+	// case SP = 'SP';
 }

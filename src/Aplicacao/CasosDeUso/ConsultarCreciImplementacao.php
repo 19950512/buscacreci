@@ -27,7 +27,6 @@ use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 use App\Aplicacao\CasosDeUso\EntradaESaida\SaidaConsultarCreciPlataforma;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\ES\CreciESPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\RS\CreciRSPlataformaImplementacao;
-use App\Infraestrutura\Adaptadores\PlataformasCreci\SP\CreciSPPlataformaImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\Conselho\CreciConselhoPlataformaImplementacao;
 
 readonly final class ConsultarCreciImplementacao implements ConsultarCreci
@@ -303,9 +302,6 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 				CreciImplementado::ES => new CreciESPlataformaImplementacao(
 					discord: $this->discord,
 				),
-				CreciImplementado::SP => new CreciSPPlataformaImplementacao(
-					discord: $this->discord,
-				),
 			};
 
 			try {
@@ -335,6 +331,7 @@ readonly final class ConsultarCreciImplementacao implements ConsultarCreci
 			$plataformaCreci = new CreciConselhoPlataformaImplementacao(
 				uf: $estadoEntity->getUF(),
 				discord: $this->discord,
+				captcha: $this->captcha,
 			);
 
 			try {

@@ -1,27 +1,15 @@
 /**
  * CRECI SP - Headless Chrome scraper helper
- * 
- * This script is called by the PHP SP scraper to bypass Enterprise reCAPTCHA
- * using a real Chrome browser with stealth measures to avoid bot detection.
+ *
+ * Uses a real Chrome browser with stealth measures to bypass Enterprise reCAPTCHA
+ * on CRECI SP's broker search page.
  *
  * Usage: node creci_sp_scraper.js <creci_number> <tipo_creci>
  * Example: node creci_sp_scraper.js 123546 F
- * 
- * Output: JSON on stdout with broker data
- * {
- *   "success": true,
- *   "data": {
- *     "inscricao": "123546",
- *     "nomeCompleto": "RAPHAEL ROBERTO FLORIANI",
- *     "situacao": "Ativo",
- *     "cidade": "",
- *     "estado": "SP",
- *     "dataInscricao": "24/09/2012"
- *   }
- * }
- * 
- * On error:
- * { "success": false, "error": "Error message" }
+ *
+ * Output: JSON on stdout
+ *   Success: { "success": true, "data": { ... } }
+ *   Error:   { "success": false, "error": "..." }
  */
 
 const puppeteer = require('puppeteer-extra');
@@ -31,14 +19,50 @@ puppeteer.use(StealthPlugin());
 
 const SEARCH_URL = 'https://www.crecisp.gov.br/cidadao/buscaporcorretores';
 const CHROME_PATH = process.env.CHROME_PATH || '/usr/bin/google-chrome';
+const MAX_RETRIES = 3;
 
 function output(obj) {
     process.stdout.write(JSON.stringify(obj));
 }
 
-async function scrape(creciNumber, tipoCreci) {
+/** Random integer between min and max (inclusive) */
+function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/** Sleep for ms milliseconds */
+function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+}
+
+/**
+ * Move mouse to an element with human-like curve, then optionally click.
+ * Uses multiple small steps to simulate natural mouse movement.
+ */
+async function humanMove(page, selector, click = false) {
+    const el = await page.$(selector);
+    if (!el) throw new Error(`Element not found: ${selector}`);
+
+    const box = await el.boundingBox();
+    if (!box) throw new Error(`No bounding box for: ${selector}`);
+
+    // Target is a random point within the element
+    const targetX = box.x + rand(5, Math.max(6, box.width - 5));
+    const targetY = box.y + rand(3, Math.max(4, box.height - 3));
+
+    // Get current mouse position (start from a random spot on first call)
+    const steps = rand(8, 18);
+    await page.mouse.move(targetX, targetY, { steps });
+    await sleep(rand(100, 300));
+
+    if (click) {
+        await page.mouse.click(targetX, targetY, { delay: rand(50, 120) });
+    }
+}
+
+async function scrapeAttempt(creciNumber, tipoCreci) {
     let browser;
-    
+
     try {
         browser = await puppeteer.launch({
             headless: 'new',
@@ -53,63 +77,82 @@ async function scrape(creciNumber, tipoCreci) {
                 '--no-first-run',
                 '--disable-blink-features=AutomationControlled',
                 '--window-size=1366,768',
+                '--lang=pt-BR,pt',
             ],
             timeout: 30000,
         });
 
         const page = await browser.newPage();
 
-        await page.setUserAgent(
-            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
-        );
+        await page.setExtraHTTPHeaders({
+            'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+        });
         await page.setViewport({ width: 1366, height: 768 });
 
-        // Step 1: Load search page
+        // --- Step 1: Visit the homepage first to build cookies & reCAPTCHA trust ---
+        await page.goto('https://www.crecisp.gov.br/', {
+            waitUntil: 'networkidle2',
+            timeout: 30000,
+        });
+        await sleep(rand(1500, 3000));
+
+        // Simulate some idle mouse movements on homepage
+        await page.mouse.move(rand(200, 600), rand(200, 400), { steps: rand(5, 10) });
+        await sleep(rand(500, 1000));
+        await page.mouse.move(rand(400, 800), rand(300, 500), { steps: rand(5, 10) });
+        await sleep(rand(500, 1500));
+
+        // --- Step 2: Navigate to the search page (like a real user clicking a link) ---
         await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 30000 });
+        await sleep(rand(1000, 2500));
 
-        // Step 2: Fill in CRECI number (with delay to simulate typing)
-        await page.type('#RegisterNumber', creciNumber, { delay: 80 });
+        // --- Step 3: Simulate reading the page - random mouse movements ---
+        await page.mouse.move(rand(300, 700), rand(150, 350), { steps: rand(5, 12) });
+        await sleep(rand(400, 800));
 
-        // Step 3: Wait for Enterprise reCAPTCHA to be fully loaded
+        // --- Step 4: Click on the CRECI input field naturally, then type ---
+        await humanMove(page, '#RegisterNumber', true);
+        await sleep(rand(300, 700));
+
+        // Type the CRECI number with human-like random delays per keystroke
+        for (const char of creciNumber) {
+            await page.keyboard.type(char, { delay: rand(60, 180) });
+            if (Math.random() < 0.15) await sleep(rand(100, 400)); // occasional pause
+        }
+
+        await sleep(rand(800, 1500));
+
+        // --- Step 5: Wait for Enterprise reCAPTCHA to be fully loaded ---
         await page.waitForFunction(() => {
             return typeof grecaptcha !== 'undefined' &&
                    grecaptcha.enterprise &&
                    typeof grecaptcha.enterprise.execute === 'function';
         }, { timeout: 15000 });
 
-        // Small delay to let reCAPTCHA finish initialization
-        await new Promise(r => setTimeout(r, 2000));
+        await sleep(rand(500, 1500));
 
-        // Step 4: Execute Enterprise reCAPTCHA and submit via the page's own onSubmit callback
-        // This replicates the exact flow the site uses: get token → set hidden field → submit form
-        const siteKey = await page.evaluate(() => {
-            const btn = document.querySelector('button.g-recaptcha');
-            return btn ? btn.getAttribute('data-sitekey') : null;
-        });
+        // Move mouse around a bit before clicking submit (simulates user looking at the form)
+        await page.mouse.move(rand(500, 900), rand(300, 500), { steps: rand(5, 10) });
+        await sleep(rand(300, 800));
 
-        if (!siteKey) {
-            throw new Error('Could not find reCAPTCHA site key on the page');
-        }
-
+        // --- Step 6: Click the submit button and let reCAPTCHA handle everything ---
+        // The button has class g-recaptcha with data-callback="onSubmit".
+        // Clicking it triggers reCAPTCHA's built-in handler which:
+        //   1. Runs invisible reCAPTCHA assessment with browser signals
+        //   2. Generates token
+        //   3. Calls onSubmit(token) which sets ReCAPTCHAToken & submits form
         await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 45000 }),
-            page.evaluate((key) => {
-                return grecaptcha.enterprise.execute(key, { action: 'submit_broker_search' })
-                    .then(token => {
-                        document.getElementById('ReCAPTCHAToken').value = token;
-                        document.getElementById('IsFinding').value = 'True';
-                        document.getElementById('buscaCorretoresForm').submit();
-                    });
-            }, siteKey),
+            page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 60000 }),
+            humanMove(page, 'button.g-recaptcha', true),
         ]);
 
-        // Step 6: Check for captcha validation error
+        // --- Step 7: Check for captcha validation error ---
         const pageText = await page.evaluate(() => document.body.innerText);
         if (pageText.includes('Validação reCAPTCHA') || pageText.includes('erro na validação do capatcha')) {
-            throw new Error('Captcha validation failed on CRECI SP server');
+            throw new Error('CAPTCHA_FAILED');
         }
 
-        // Step 7: Find the broker in the results
+        // --- Step 8: Find broker in results ---
         const registerNumberQuery = `${creciNumber}-${tipoCreci}`;
         const brokerFound = await page.evaluate((query) => {
             const forms = document.querySelectorAll('form[action*="corretordetalhes"]');
@@ -118,19 +161,17 @@ async function scrape(creciNumber, tipoCreci) {
                     return true;
                 }
             }
-            // Check if any form exists (single result)
             return forms.length > 0;
         }, registerNumberQuery);
 
         if (!brokerFound) {
-            // Try extracting from the list even without the detail link
-            const brokerFromList = await page.evaluate((query) => {
+            const brokerFromList = await page.evaluate(() => {
                 const h6s = document.querySelectorAll('.broker-details h6');
                 if (h6s.length > 0) {
                     return { name: h6s[0].textContent.trim() };
                 }
                 return null;
-            }, registerNumberQuery);
+            });
 
             if (brokerFromList) {
                 return {
@@ -145,11 +186,10 @@ async function scrape(creciNumber, tipoCreci) {
                     },
                 };
             }
-
             throw new Error(`CRECI ${creciNumber}-${tipoCreci} not found in search results`);
         }
 
-        // Step 8: Click the Detalhes form (POST to detail page)
+        // --- Step 9: Navigate to detail page ---
         await Promise.all([
             page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }),
             page.evaluate((query) => {
@@ -160,55 +200,32 @@ async function scrape(creciNumber, tipoCreci) {
                         return;
                     }
                 }
-                // Submit the first form if no exact match
                 if (forms.length > 0) forms[0].submit();
             }, registerNumberQuery),
         ]);
 
-        // Step 9: Extract detail data
+        // --- Step 10: Extract detail data ---
         const detailData = await page.evaluate(() => {
             const data = {};
-
-            // Extract name from h1 subtext or dedicated element
-            const heading = document.querySelector('h1');
-            if (heading) {
-                // The page title is "Detalhes do (a)Corretor(a)"
-                // The name is usually in a separate element after the heading
-            }
-
-            // Extract all text content and parse it
             const bodyText = document.body.innerText;
             const lines = bodyText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
-            // Find name - it appears after "Detalhes do (a)Corretor(a)"
             let nameIndex = lines.findIndex(l => l.includes('Detalhes do'));
             if (nameIndex >= 0 && nameIndex + 1 < lines.length) {
                 data.nomeCompleto = lines[nameIndex + 1];
             }
 
-            // Find CRECI
             const creciLine = lines.find(l => l.startsWith('CRECI:'));
-            if (creciLine) {
-                data.creci = creciLine.replace('CRECI:', '').trim();
-            }
+            if (creciLine) data.creci = creciLine.replace('CRECI:', '').trim();
 
-            // Find Data de Inscrição
             const dataLine = lines.find(l => l.startsWith('Data de Inscrição:'));
-            if (dataLine) {
-                data.dataInscricao = dataLine.replace('Data de Inscrição:', '').trim();
-            }
+            if (dataLine) data.dataInscricao = dataLine.replace('Data de Inscrição:', '').trim();
 
-            // Find Situação
             const situacaoLine = lines.find(l => l.startsWith('Situação:'));
-            if (situacaoLine) {
-                data.situacao = situacaoLine.replace('Situação:', '').trim();
-            }
+            if (situacaoLine) data.situacao = situacaoLine.replace('Situação:', '').trim();
 
-            // Find E-Mail
             const emailLine = lines.find(l => l.startsWith('E-Mail Oficial:'));
-            if (emailLine) {
-                data.email = emailLine.replace('E-Mail Oficial:', '').trim();
-            }
+            if (emailLine) data.email = emailLine.replace('E-Mail Oficial:', '').trim();
 
             return data;
         });
@@ -217,7 +234,6 @@ async function scrape(creciNumber, tipoCreci) {
             throw new Error('Could not extract broker name from detail page');
         }
 
-        // Extract just the number from CRECI field (e.g., "123546-F" -> "123546")
         const inscricao = detailData.creci
             ? detailData.creci.replace(/[^0-9]/g, '')
             : creciNumber;
@@ -241,6 +257,31 @@ async function scrape(creciNumber, tipoCreci) {
     }
 }
 
+async function scrapeWithRetry(creciNumber, tipoCreci) {
+    let lastError;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            return await scrapeAttempt(creciNumber, tipoCreci);
+        } catch (err) {
+            lastError = err;
+            if (err.message === 'CAPTCHA_FAILED' && attempt < MAX_RETRIES) {
+                // Increasing backoff between retries
+                const delay = attempt * 8000 + rand(2000, 5000);
+                await sleep(delay);
+                continue;
+            }
+            break;
+        }
+    }
+
+    throw new Error(
+        lastError.message === 'CAPTCHA_FAILED'
+            ? `Captcha validation failed after ${MAX_RETRIES} attempts`
+            : lastError.message
+    );
+}
+
 // Main
 const args = process.argv.slice(2);
 if (args.length < 2) {
@@ -250,7 +291,7 @@ if (args.length < 2) {
 
 const [creciNumber, tipoCreci] = args;
 
-scrape(creciNumber, tipoCreci)
+scrapeWithRetry(creciNumber, tipoCreci)
     .then(result => {
         output(result);
         process.exit(0);

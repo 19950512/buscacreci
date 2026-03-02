@@ -76,6 +76,44 @@ class Captcha2CaptchaImplementation implements Captcha
         throw new Exception('Falha ao resolver o reCAPTCHA v3 com 2Captcha.');
     }
     
+    #[Override] public function resolverTurnstile(string $siteKey, string $pageUrl): CaptchaResolvido
+    {
+        $apiKey = $this->env->get('CAPTCHA_TOKEN_2CAPTCHA');
+
+        $request = [
+            'key' => $apiKey,
+            'method' => 'turnstile',
+            'sitekey' => $siteKey,
+            'pageurl' => $pageUrl,
+            'json' => 1
+        ];
+
+        $response = file_get_contents('https://2captcha.com/in.php?' . http_build_query($request));
+        $responseData = json_decode($response, true);
+
+        if(isset($responseData['status']) and $responseData['status'] == 1) {
+            $captchaId = $responseData['request'];
+
+            $startTime = time();
+            while (true) {
+                sleep(5);
+
+                $result = file_get_contents('https://2captcha.com/res.php?key=' . $apiKey . '&action=get&id=' . $captchaId . '&json=1');
+                $resultData = json_decode($result, true);
+
+                if ($resultData['status'] == 1) {
+                    return new CaptchaResolvido($resultData['request']);
+                }
+
+                if (time() - $startTime > 120) {
+                    throw new Exception('Tempo limite excedido para resolver o Cloudflare Turnstile.');
+                }
+            }
+        }
+
+        throw new Exception('Falha ao resolver o Cloudflare Turnstile com 2Captcha: ' . json_encode($responseData));
+    }
+
     #[Override] public function resolverV2(string $siteKey, string $pageUrl): CaptchaResolvido
     {
         $apiKey = $this->env->get('CAPTCHA_TOKEN_2CAPTCHA');

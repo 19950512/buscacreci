@@ -13,13 +13,12 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Aplicacao\Compartilhado\Discord\Discord;
 use App\Aplicacao\Compartilhado\Discord\Enums\CanalTexto;
-use App\Aplicacao\Compartilhado\Envrionment;
 use App\Dominio\Entidades\CreciEntidade;
 use App\Dominio\ObjetoValor\IdentificacaoUnica;
 use App\Dominio\Repositorios\EntradaESaida\SaidaInformacoesCreci;
-use App\Dominio\Repositorios\EntradaESaida\EntradaSalvarCreciConsultado;
 use App\Infraestrutura\Adaptadores\EnvrionmentImplementacao;
 use App\Infraestrutura\Adaptadores\PlataformasCreci\SP\CreciSPPlataformaImplementacao;
+use App\Infraestrutura\Adaptadores\Captcha\Captcha2CaptchaImplementation;
 
 // ── Discord stub (sem webhook configurado, só loga no terminal) ──
 class DiscordTerminal implements Discord
@@ -39,8 +38,10 @@ $env = new EnvrionmentImplementacao();
 $discord = new DiscordTerminal();
 
 // 2. Instanciar o scraper SP (usa headless Chrome, não precisa de 2Captcha)
+$captcha = new Captcha2CaptchaImplementation(env: $env);
 $scraperSP = new CreciSPPlataformaImplementacao(
     discord: $discord,
+    captcha: $captcha,
 );
 
 // 3. Executar a consulta
