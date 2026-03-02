@@ -29,6 +29,7 @@ services:
   api:
     image: 'nginx:alpine'
     container_name: buscacreci_nginx_api
+    restart: unless-stopped
     working_dir: /application
     depends_on:
       - postgres
@@ -40,6 +41,7 @@ services:
       - '8053:80'
     networks:
       - buscacreci_network
+      - nginx_web
 
   laucher-queue:
     build: ./docker/php-fpm
@@ -118,6 +120,8 @@ services:
 
 networks:
   buscacreci_network:
+  nginx_web:
+    external: true
 
 volumes:
   pg-data:
