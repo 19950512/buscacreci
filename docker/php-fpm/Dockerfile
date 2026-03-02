@@ -19,9 +19,9 @@ RUN apt-get update \
         pdo_pgsql \
         pdo \
         pgsql \
-        sockets; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+        sockets \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # pgsql and pdo_pgsql already installed above
 
