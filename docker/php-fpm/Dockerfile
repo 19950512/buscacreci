@@ -8,7 +8,7 @@ RUN apt-get update \
         zlib1g-dev \
         libpq-dev \
         libzip-dev \
-        libpcre3-dev \
+        libpcre2-dev \
         libcurl4-openssl-dev \
         curl \
         git \
