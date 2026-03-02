@@ -23,7 +23,7 @@ RUN apt-get update \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
-RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql && docker-php-ext-install pgsql pdo_pgsql
+# pgsql and pdo_pgsql already installed above
 
 # Install Node.js (required for CRECI SP headless Chrome scraper)
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
