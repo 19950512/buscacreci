@@ -32,6 +32,10 @@
     "config": {
         "allow-plugins": {
             "pestphp/pest-plugin": true
+        },
+        "audit": {
+            "abandoned": "report",
+            "block-insecure": false
         }
     }
 }
