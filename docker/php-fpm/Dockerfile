@@ -38,6 +38,10 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor
     && apt-get install -y google-chrome-stable --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Node.js dependencies (puppeteer-core for CRECI SP scraper)
+COPY package.json package-lock.json* /application/
+RUN npm install --omit=dev
+
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
