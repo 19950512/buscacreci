@@ -9,6 +9,7 @@ RUN apt-get update \
         libpq-dev \
         libzip-dev \
         libpcre2-dev \
+        libonig-dev \
         libcurl4-openssl-dev \
         curl \
         git \
