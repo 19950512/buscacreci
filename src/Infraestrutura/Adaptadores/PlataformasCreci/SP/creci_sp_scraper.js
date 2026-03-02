@@ -2,8 +2,7 @@
  * CRECI SP - Headless Chrome scraper helper
  * 
  * This script is called by the PHP SP scraper to bypass Enterprise reCAPTCHA
- * using a real Chrome browser. Enterprise reCAPTCHA cannot be solved by
- * captcha-solving services like 2Captcha - it requires real browser execution.
+ * using a real Chrome browser with stealth measures to avoid bot detection.
  *
  * Usage: node creci_sp_scraper.js <creci_number> <tipo_creci>
  * Example: node creci_sp_scraper.js 123546 F
@@ -25,10 +24,12 @@
  * { "success": false, "error": "Error message" }
  */
 
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+
+puppeteer.use(StealthPlugin());
 
 const SEARCH_URL = 'https://www.crecisp.gov.br/cidadao/buscaporcorretores';
-const SITE_KEY = '6LfUMMgqAAAAABG4tjE8VkT2wKZlqmAvV2YsId7a';
 const CHROME_PATH = process.env.CHROME_PATH || '/usr/bin/google-chrome';
 
 function output(obj) {
@@ -50,49 +51,56 @@ async function scrape(creciNumber, tipoCreci) {
                 '--disable-extensions',
                 '--disable-default-apps',
                 '--no-first-run',
+                '--disable-blink-features=AutomationControlled',
+                '--window-size=1366,768',
             ],
             timeout: 30000,
         });
 
         const page = await browser.newPage();
-        
+
         await page.setUserAgent(
-            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
         );
+        await page.setViewport({ width: 1366, height: 768 });
 
         // Step 1: Load search page
         await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 30000 });
 
-        // Step 2: Fill in CRECI number
-        await page.type('#RegisterNumber', creciNumber);
+        // Step 2: Fill in CRECI number (with delay to simulate typing)
+        await page.type('#RegisterNumber', creciNumber, { delay: 80 });
 
-        // Step 3: Wait for Enterprise reCAPTCHA to be ready
-        await new Promise(r => setTimeout(r, 3000));
+        // Step 3: Wait for Enterprise reCAPTCHA to be fully loaded
+        await page.waitForFunction(() => {
+            return typeof grecaptcha !== 'undefined' &&
+                   grecaptcha.enterprise &&
+                   typeof grecaptcha.enterprise.execute === 'function';
+        }, { timeout: 15000 });
 
-        // Step 4: Execute Enterprise reCAPTCHA in the real browser context
-        const token = await page.evaluate((siteKey) => {
-            return new Promise((resolve, reject) => {
-                if (typeof grecaptcha === 'undefined' || !grecaptcha.enterprise) {
-                    reject(new Error('Enterprise reCAPTCHA not loaded'));
-                    return;
-                }
-                grecaptcha.enterprise.ready(() => {
-                    grecaptcha.enterprise.execute(siteKey, { action: 'submit_broker_search' })
-                        .then(resolve)
-                        .catch(err => reject(new Error(err.message || 'reCAPTCHA execute failed')));
-                });
-            });
-        }, SITE_KEY);
+        // Small delay to let reCAPTCHA finish initialization
+        await new Promise(r => setTimeout(r, 2000));
 
-        // Step 5: Inject token and submit form
-        await page.evaluate((captchaToken) => {
-            document.getElementById('ReCAPTCHAToken').value = captchaToken;
-            document.getElementById('IsFinding').value = 'True';
-        }, token);
+        // Step 4: Execute Enterprise reCAPTCHA and submit via the page's own onSubmit callback
+        // This replicates the exact flow the site uses: get token → set hidden field → submit form
+        const siteKey = await page.evaluate(() => {
+            const btn = document.querySelector('button.g-recaptcha');
+            return btn ? btn.getAttribute('data-sitekey') : null;
+        });
+
+        if (!siteKey) {
+            throw new Error('Could not find reCAPTCHA site key on the page');
+        }
 
         await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }),
-            page.evaluate(() => document.getElementById('buscaCorretoresForm').submit()),
+            page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 45000 }),
+            page.evaluate((key) => {
+                return grecaptcha.enterprise.execute(key, { action: 'submit_broker_search' })
+                    .then(token => {
+                        document.getElementById('ReCAPTCHAToken').value = token;
+                        document.getElementById('IsFinding').value = 'True';
+                        document.getElementById('buscaCorretoresForm').submit();
+                    });
+            }, siteKey),
         ]);
 
         // Step 6: Check for captcha validation error
