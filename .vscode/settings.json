@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^which ssh-mayzap 2>/dev/null; alias ssh-mayzap 2>/dev/null; type ssh-mayzap 2>/dev/null$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

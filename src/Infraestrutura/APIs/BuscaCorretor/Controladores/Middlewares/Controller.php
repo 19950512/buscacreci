@@ -29,9 +29,8 @@ abstract class Controller
 		header('Content-Type: application/json');
 	    header_remove('Server');
 	    header_remove('X-Powered-By');
-	    header('X-Content-Type-Options: nosniff');
-	    header('X-Frame-Options: DENY');
-	    header('Referrer-Policy: strict-origin-when-cross-origin');
+	    // Security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy)
+	    // are handled by nginx to avoid duplication
 
         if(isset($data['statusCode']) and is_numeric($data['statusCode'])){
             header("HTTP/1.0 {$data['statusCode']} {$data['statusMessage']}");

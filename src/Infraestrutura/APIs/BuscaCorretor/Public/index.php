@@ -6,11 +6,8 @@ declare(strict_types=1);
 
 use App\Infraestrutura\APIs\Router;
 
-$allowedOrigins = [
-    'https://buscacreci.com.br',
-    'http://localhost:8052',
-    'http://localhost:3000',
-];
+// CORS headers are handled by nginx (nginx_api.conf)
+// Do not add CORS headers here to avoid duplication
 
 session_start([
     'cookie_httponly' => true,
@@ -18,19 +15,6 @@ session_start([
     'cookie_samesite' => 'Lax',
     'use_strict_mode' => true,
 ]);
-
-if (in_array(($_SERVER['HTTP_ORIGIN'] ?? ''), $allowedOrigins)) {
-    header("Access-Control-Allow-Origin: " . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
-}
-
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS"); // Métodos permitidos
-header("Access-Control-Allow-Headers: Content-Type, Authorization"); // Cabeçalhos permitidos
-
-// Se for uma requisição OPTIONS (preflight), responde com 200 e encerra
-if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
 
 $container = require __DIR__ . '/../../../../Aplicacao/Compartilhado/Container.php';
 
