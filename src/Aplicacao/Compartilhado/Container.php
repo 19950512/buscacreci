@@ -65,10 +65,14 @@ $container->addDefinitions([
 
             error_log('Database connection error: ' . $erro->getMessage());
 
-            header('Content-Type: application/json');
-            http_response_code(503);
-            echo json_encode(['error' => 'Serviço temporariamente indisponível.']);
-            exit;
+            if (php_sapi_name() !== 'cli') {
+                header('Content-Type: application/json');
+                http_response_code(503);
+                echo json_encode(['error' => 'Serviço temporariamente indisponível.']);
+                exit;
+            }
+
+            throw $erro;
         }
 	},
 	CreciRepositorio::class => function(Container $container)
